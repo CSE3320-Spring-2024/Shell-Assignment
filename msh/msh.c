@@ -35,7 +35,7 @@
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 32
 #define WHITESPACE_DEL " \t\n"
-#define EXIT_COMMAND "EXIT\n"
+#define EXIT_COMMAND "exit\n"
 
 int main( int argc, char * argv[] )
 {
