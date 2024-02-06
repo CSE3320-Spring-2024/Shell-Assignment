@@ -30,7 +30,11 @@
 #include <errno.h>
 #include <string.h>
 
+#define DEBUG 0
+
 #define MAX_COMMAND_SIZE 255
+#define MAX_NUM_ARGUMENTS 32
+#define WHITESPACE_DEL " \t\n"
 #define EXIT_COMMAND "EXIT\n"
 
 int main( int argc, char * argv[] )
@@ -39,11 +43,41 @@ int main( int argc, char * argv[] )
 
   while(strcmp(command_input, EXIT_COMMAND))
   {
+    char* arg_tokens[MAX_NUM_ARGUMENTS];
+    char* argument_token;
+    int token_count = 0;
+
     printf("msh> ");
 
-    fgets(command_input, MAX_COMMAND_SIZE, stdin);
+    while(!fgets(command_input, MAX_COMMAND_SIZE, stdin));
 
-    printf("You typed: %s", command_input);
+    char* working_string = strdup(command_input);
+    char* original_working_str = working_string;
+
+    if(DEBUG) printf("\nDEBUG: TOKENIZING: \n");
+    while(((argument_token = strsep(&working_string, WHITESPACE_DEL)) != NULL) &&
+          (token_count < MAX_NUM_ARGUMENTS))
+    {
+      if(DEBUG) printf("DEBUG: %s\n", argument_token);
+      arg_tokens[token_count] = strdup(argument_token);
+      if(strlen(arg_tokens[token_count]) == 0)
+      {
+        free(arg_tokens[token_count]);
+        arg_tokens[token_count] = NULL;
+      }
+      token_count++;
+    }
+
+    if(DEBUG) printf("\nDEBUG: You typed: %s", command_input);
+
+    if(DEBUG) printf("\nDEBUG: Your tokens:\n");
+    for(int token_ind = 0; token_ind < token_count; token_ind++)
+    {
+      if(DEBUG) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
+      free(arg_tokens[token_ind]);
+    }
+
+    free(original_working_str);
   }
 
   free(command_input);
