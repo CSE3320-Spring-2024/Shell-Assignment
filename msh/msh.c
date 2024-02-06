@@ -31,7 +31,7 @@
 #include <string.h>
 
 #define MAX_COMMAND_SIZE 255
-#define EXIT_COMMAND "EXIT\n"
+#define EXIT_COMMAND "exit\n"
 
 int main( int argc, char * argv[] )
 {
