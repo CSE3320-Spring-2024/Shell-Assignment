@@ -30,9 +30,21 @@
 #include <errno.h>
 #include <string.h>
 
+#define MAX_COMMAND_SIZE 255
+#define EXIT_COMMAND "EXIT\n"
 
 int main( int argc, char * argv[] )
 {
+  char* command_input = (char*) malloc(MAX_COMMAND_SIZE);
+
+  while(strcmp(command_input, EXIT_COMMAND))
+  {
+    printf("msh> ");
+
+    fgets(command_input, MAX_COMMAND_SIZE, stdin);
+
+    printf("You typed: %s", command_input);
+  }
   return 0;
 }
 
