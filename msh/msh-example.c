@@ -1,3 +1,4 @@
+/*
 // The MIT License (MIT)
 // 
 // Copyright (c) 2024 Trevor Bakker 
@@ -52,13 +53,14 @@ int main()
     // Print out the msh prompt
     printf ("msh> ");
 
-    // Read the command from the commandi line.  The
+    // Read the command from the command line.  The
     // maximum command that will be read is MAX_COMMAND_SIZE
     // This while command will wait here until the user
     // inputs something.
     while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
     /* Parse input */
+    /*
     char *token[MAX_NUM_ARGUMENTS];
 
     int token_count = 0;                                 
@@ -87,6 +89,7 @@ int main()
         token_count++;
     }
 
+/*
     // Now print the tokenized input as a debug check
     // \TODO Remove this code and replace with your shell functionality
 
@@ -99,7 +102,65 @@ int main()
     free( head_ptr );
 
   }
+ */ /*
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
 }
+
+*/
+
+#define _GNU_SOURCE
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <signal.h>
+#include <ctype.h>
+#include <dirent.h>
+
+#define WHITESPACE " \t\n"     
+#define MAX_COMMAND_SIZE 255   
+#define MAX_NUM_ARGUMENTS 32     
+
+int main()
+{
+  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
+  while( 1 )
+  {
+    printf ("msh> ");
+    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+    char *token[MAX_NUM_ARGUMENTS];
+    int token_count = 0;                                                                                 
+    char *argument_pointer;                                                                                        
+    char *working_string  = strdup( command_string );                
+    char *head_ptr = working_string;
+    while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
+              (token_count<MAX_NUM_ARGUMENTS))
+    {
+      token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
+      if( strlen( token[token_count] ) == 0 )
+      {
+        token[token_count] = NULL;
+      }
+        token_count++;
+    }
+
+    //--------------------------Added code-----------------------------------------------------------------------------
+
+    if (strcmp(token[0], "exit")==0)
+        {
+            exit(0);
+        }
+
+    //-----------------------------End-------------------------------------------------------------------------------------
+        free(head_ptr);
+  }
+
+  return 0;
+}
+
+
 

@@ -83,6 +83,48 @@ int main()
         token_count++;
     }
 
+    
+
+
+
+
+
+    if (token_count > 0) {
+    // Handle built-in commands
+    if (strcmp(token[0], "exit") == 0) {
+        // Free allocated memory before exiting
+        free(command_string);
+        free(working_string);
+        exit(0);
+    }
+    // Add more built-in commands here (e.g., cd)
+
+    // Fork a child process to execute external commands
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        // Error forking
+        perror("fork");
+    } else if (pid == 0) {
+        // Child process
+        execvp(token[0], token);
+        // execvp only returns if an error occurs
+        perror("execvp");
+        exit(EXIT_FAILURE);
+    } else {
+        // Parent process
+        // Wait for the child to finish
+        waitpid(pid, NULL, 0);
+    }
+}
+
+// Free allocated memory
+free(working_string);
+for (int i = 0; i < token_count; i++) {
+    free(token[i]);
+}
+
+
     // Now print the tokenized input as a debug check
     // \TODO Remove this code and replace with your shell functionality
 /*
