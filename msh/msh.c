@@ -45,6 +45,9 @@ int main( int argc, char * argv[] )
 
     printf("You typed: %s", command_input);
   }
+
+  free(command_input);
+
   return 0;
 }
 
