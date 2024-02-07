@@ -37,7 +37,7 @@ int main( int argc, char * argv[] )
 {
   char* command_input = (char*) malloc(MAX_COMMAND_SIZE);
 
-  while(strcmp(command_input, EXIT_COMMAND))
+  while(!feof(stdin) && strcmp(command_input, EXIT_COMMAND))
   {
     printf("msh> ");
 
