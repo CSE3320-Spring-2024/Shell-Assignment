@@ -125,9 +125,20 @@ int main()
 #define MAX_COMMAND_SIZE 255   
 #define MAX_NUM_ARGUMENTS 32     
 
+
+
+void execute_command(char **args)
+{
+    execvp(args[0], args);
+    perror("execvp"); // Print error if execvp fails
+    exit(1);
+}
+
 int main()
 {
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
+  char error_message[30] = "An error has occurred\n";
+
   while( 1 )
   {
     printf ("msh> ");
@@ -148,14 +159,32 @@ int main()
         token_count++;
     }
 
-    //--------------------------Added code-----------------------------------------------------------------------------
+//--------------------------Added code-----------------------------------------------------------------------------
 
-    if (strcmp(token[0], "exit")==0)
+        if (strcmp("exit", token[0]) == 0)        // if exit, close the program
         {
             exit(0);
         }
-
-    //-----------------------------End-------------------------------------------------------------------------------------
+        else if (strcmp("ls", token[0]) == 0)
+        {
+            pid_t p1 = fork();
+            if(p1 < 0)
+            {
+                write(STDERR_FILENO, error_message, strlen(error_message)); 
+                exit(0);
+            }
+            else if (p1 == 0)                 // Child process
+            {
+              //  EXECUTE TOKEN HERE                 
+                exit(0);
+            }
+            else if (p1 < 0)                  // Parent waiting for child 
+            {
+                wait(NULL);
+            }
+        }
+        
+//-----------------------------End-------------------------------------------------------------------------------------
         free(head_ptr);
   }
 
