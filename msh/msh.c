@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <ctype.h>
 
 
 int main(int argc, char *argv[])
@@ -46,31 +47,35 @@ int main(int argc, char *argv[])
   {
     printf("msh> ");
     chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
-    line[chars - 1] = '\0';
-
-    int argc1 = 1;
-    for(int i = 0;i<chars -1;i++)
+    while(chars > 0 && isspace(line[chars - 1])) //Removes extraneous spaces at end of last command
     {
-      if(line[i] == ' ')
+      line[chars - 1] = '\0';
+      chars--;
+    }
+    line[chars] = '\0'; //Ensures last character is a null terminator
+
+    int argc1 = 1; //argc will always be at least 1
+    for(int i = 0;i<chars -1;i++) //counts argc
+    {
+      if(line[i] == ' ') //space indicates a new command
       {
-        if(line[i-1] == ' ')
+        if(line[i-1] == ' ') //two spaces in a row is a bad command
         {
           printf("Please enter only one space between commands\n");
-          goto Start;
+          goto Start;     //ignores bad command and returns to Start:
         }
         argc1++;
       }
     }
-    printf("argc = %d\n", argc1);
+    printf("argc = %d\n", argc1); //For testing
 
 
 char argv1[argc1][40];
 char temp[256];
-strcpy(temp, line);
+strcpy(temp, line); // keeps original copy safe from strtok
 strcpy(argv1[0],strtok(temp, del)); //assigns first command
 if(argc1 > 1)
 {
-  
   for(int i = 1;i < argc1;i++)     //assigns each additional command
   {
     strcpy(argv1[i],strtok(NULL, del));
@@ -82,21 +87,21 @@ if(argc1 > 1)
          //At this point, Custom Argc and Argv are functional
 }
 
-    if (chars < 0)
+    if (chars < 0) //Something went terribly wrong here.
     {
-      puts("Input not valid");
+      puts("Input not valid"); 
     }
-    else if(strcmp(argv1[0], "exit") == 0)
+    else if(strcmp(argv1[0], "exit") == 0) //user input exit command
     {
       exit(0);
     }
-    else if(strcmp(argv1[0], "cd") == 0)
+    else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
     {
       printf("Moving to new directory %s\n", argv1[1]);
     }
-    else
+    else //User entered a command that is not recognized by shell
     {
-      printf("%s is not a working command\n", line);
+      printf("%s is not recognized in MSH\n", line);
     }
   }
   free(line);
