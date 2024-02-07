@@ -23,12 +23,12 @@
 
 #define _GNU_SOURCE
 
-#include <stdio.h>
-#include <unistd.h>
+#include <stdio.h> // for input output (printing)
+#include <unistd.h> // for exec()
 #include <sys/wait.h>
-#include <stdlib.h>
+#include <stdlib.h> // for malloc()
 #include <errno.h>
-#include <string.h>
+#include <string.h> // for string stuff
 
 #define DEBUG 0
 
@@ -78,7 +78,6 @@ int main( int argc, char * argv[] )
         if(DEBUG) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
         free(arg_tokens[token_ind]);
       }
-
       free(original_working_str);
     }
   }
