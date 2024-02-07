@@ -31,8 +31,51 @@
 #include <string.h>
 
 
-int main( int argc, char * argv[] )
+int main(int argc, char *argv[])
 {
+  char respond[50] = "Not a Command";
+  char *line = "not exit";
+  size_t size = 0;
+  ssize_t chars = -1;
+  char del[2] = " ";
+  char *ptr;
+  char argv1 [256][30];
+
+  while(strcmp(line, "exit"))
+  {
+    printf("msh> ");
+    chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
+    line[chars - 1] = '\0';
+
+/*. //Add this later after exit is working
+  int i = 0;
+  while ((ptr = strsep(&line, del)) != NULL)   
+  {  
+     strcpy(argv1[i],ptr);
+     i++;
+  }
+*/
+
+  for(int i = 0;i < chars + 1;i++)
+  {
+      if(line[i] == ' ')
+        line[i] == '\0';
+  }
+
+    if (chars < 0)
+    {
+      puts("Input not valid");
+    }
+    if(strcmp(line, "exit") == 0)
+    {
+      exit;
+    }
+    else
+    {
+      printf("%s is not a working command\n", line);
+    }
+  }
+  free(line);
   return 0;
 }
 
