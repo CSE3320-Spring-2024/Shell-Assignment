@@ -41,34 +41,58 @@ int main(int argc, char *argv[])
   char *ptr;
   char argv1 [256][30];
 
+  Start:
   while(strcmp(line, "exit"))
   {
     printf("msh> ");
     chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
     line[chars - 1] = '\0';
 
-/*. //Add this later after exit is working
-  int i = 0;
-  while ((ptr = strsep(&line, del)) != NULL)   
-  {  
-     strcpy(argv1[i],ptr);
-     i++;
-  }
-*/
-
-  for(int i = 0;i < chars + 1;i++)
-  {
+    int argc1 = 1;
+    for(int i = 0;i<chars -1;i++)
+    {
       if(line[i] == ' ')
-        line[i] == '\0';
+      {
+        if(line[i-1] == ' ')
+        {
+          printf("Please enter only one space between commands\n");
+          goto Start;
+        }
+        argc1++;
+      }
+    }
+    printf("argc = %d\n", argc1);
+
+
+char argv1[argc1][40];
+char temp[256];
+strcpy(temp, line);
+strcpy(argv1[0],strtok(temp, del)); //assigns first command
+if(argc1 > 1)
+{
+  
+  for(int i = 1;i < argc1;i++)     //assigns each additional command
+  {
+    strcpy(argv1[i],strtok(NULL, del));
   }
+  for(int i = 0;i < argc1;i++)
+  {
+    printf("%s\n", argv1[i]);
+  }
+         //At this point, Custom Argc and Argv are functional
+}
 
     if (chars < 0)
     {
       puts("Input not valid");
     }
-    if(strcmp(line, "exit") == 0)
+    else if(strcmp(argv1[0], "exit") == 0)
     {
-      exit;
+      exit(0);
+    }
+    else if(strcmp(argv1[0], "cd") == 0)
+    {
+      printf("Moving to new directory %s\n", argv1[1]);
     }
     else
     {
