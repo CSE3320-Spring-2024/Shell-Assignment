@@ -41,7 +41,7 @@ int main( int argc, char * argv[] )
 {
   char* command_input = (char*) malloc(MAX_COMMAND_SIZE);
 
-  while(strcmp(command_input, EXIT_COMMAND))
+  while(!feof(stdin) && strcmp(command_input, EXIT_COMMAND))
   {
     char* arg_tokens[MAX_NUM_ARGUMENTS];
     char* argument_token;
