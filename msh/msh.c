@@ -49,35 +49,38 @@ int main( int argc, char * argv[] )
 
     printf("msh> ");
 
-    while(!fgets(command_input, MAX_COMMAND_SIZE, stdin));
+    while(!feof(stdin) && !fgets(command_input, MAX_COMMAND_SIZE, stdin));
 
-    char* working_string = strdup(command_input);
-    char* original_working_str = working_string;
-
-    if(DEBUG) printf("\nDEBUG: TOKENIZING: \n");
-    while(((argument_token = strsep(&working_string, WHITESPACE_DEL)) != NULL) &&
-          (token_count < MAX_NUM_ARGUMENTS))
+    if(!feof(stdin))
     {
-      if(DEBUG) printf("DEBUG: %s\n", argument_token);
-      arg_tokens[token_count] = strdup(argument_token);
-      if(strlen(arg_tokens[token_count]) == 0)
+      char* working_string = strdup(command_input);
+      char* original_working_str = working_string;
+
+      if(DEBUG) printf("\nDEBUG: TOKENIZING: \n");
+      while(((argument_token = strsep(&working_string, WHITESPACE_DEL)) != NULL) &&
+            (token_count < MAX_NUM_ARGUMENTS))
       {
-        free(arg_tokens[token_count]);
-        arg_tokens[token_count] = NULL;
+        if(DEBUG) printf("DEBUG: %s\n", argument_token);
+        arg_tokens[token_count] = strdup(argument_token);
+        if(strlen(arg_tokens[token_count]) == 0)
+        {
+          free(arg_tokens[token_count]);
+          arg_tokens[token_count] = NULL;
+        }
+        token_count++;
       }
-      token_count++;
+
+      if(DEBUG) printf("\nDEBUG: You typed: %s", command_input);
+
+      if(DEBUG) printf("\nDEBUG: Your tokens:\n");
+      for(int token_ind = 0; token_ind < token_count; token_ind++)
+      {
+        if(DEBUG) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
+        free(arg_tokens[token_ind]);
+      }
+
+      free(original_working_str);
     }
-
-    if(DEBUG) printf("\nDEBUG: You typed: %s", command_input);
-
-    if(DEBUG) printf("\nDEBUG: Your tokens:\n");
-    for(int token_ind = 0; token_ind < token_count; token_ind++)
-    {
-      if(DEBUG) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
-      free(arg_tokens[token_ind]);
-    }
-
-    free(original_working_str);
   }
 
   free(command_input);
