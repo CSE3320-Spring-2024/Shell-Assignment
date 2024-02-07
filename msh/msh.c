@@ -30,20 +30,21 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 int main(int argc, char *argv[])
 {
-  char respond[50] = "Not a Command";
   char *line = NULL;
   size_t size = 0;
   ssize_t chars = -1;
   char del[2] = " ";
-  char *ptr;
-  char argv1 [256][30];
+  pid_t pid;
 
   Start:
-  while(1)
+  while(1) //runs until exit is commanded by user
   {
     printf("msh> ");
     chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
 
 
 char argv1[argc1][40];
+strcpy(argv1[0]," ");
 char temp[256];
 strcpy(temp, line); // keeps original copy safe from strtok
 strcpy(argv1[0],strtok(temp, del)); //assigns first command
@@ -89,22 +91,57 @@ if(argc1 > 1)
 
     if (chars < 0) //Something went terribly wrong here.
     {
-      puts("Input not valid"); 
+      puts("An error has occured"); 
     }
-    else if(strcmp(argv1[0], "exit") == 0) //user input exit command
+    else if(strcmp(line, "exit") == 0) //user input exit command
     {
       exit(0);
     }
     else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
     {
-      printf("Moving to new directory %s\n", argv1[1]);
+      //printf("Moving to new directory %s\n", argv1[1]);
+      chdir(argv1[1]);
     }
     else //User entered a command that is not recognized by shell
     {
+      /*
+        //This section taken from popen.c in examples
+      //pid = fork();
+      if(pid == 0)
+      {
+          //child
+          
+          for(int i = 1;i < argc1 - 1;i++)
+          {
+            int fd = open(argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+            if(fd < 0)
+            {
+                perror( "Can't open output file." );
+                exit( 0 );                    
+            }
+            dup2( fd, 1 );
+            close( fd );
+          }
+        
+         printf("Hello Child\n");
+      }
+      else if(pid > 0)
+      {
+        //parent
+        wait(NULL);
+      }
+      else
+      {
+        perror( "Fork failed." );
+      }
+      */
       printf("%s is not recognized in MSH\n", line);
     }
   }
   free(line);
   return 0;
 }
-
+//fork()
+//implement exec() execvp() or execv()
+// /bin or /users/bin
+//Ctrl d to exit bash
