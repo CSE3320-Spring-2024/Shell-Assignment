@@ -163,25 +163,38 @@ int main()
 
         if (strcmp("exit", token[0]) == 0)        // if exit, close the program
         {
-            exit(0);
+            exit(EXIT_SUCCESS);
         }
+
         else if (strcmp("ls", token[0]) == 0)
         {
-            pid_t p1 = fork();
-            if(p1 < 0)
+            pid_t child_pid1 = fork();
+            if(child_pid1 < 0)
             {
                 write(STDERR_FILENO, error_message, strlen(error_message)); 
-                exit(0);
+                exit(EXIT_SUCCESS);
             }
-            else if (p1 == 0)                 // Child process
+            else if (child_pid1 == 0)                 // Child process
             {
-              //  EXECUTE TOKEN HERE                 
-                exit(0);
+                execl("/bin/ls", "ls", NULL );
+                exit(EXIT_SUCCESS);
             }
-            else if (p1 < 0)                  // Parent waiting for child 
+            else if (child_pid1 > 0)                  // Parent waiting for child 
             {
                 wait(NULL);
             }
+            else
+            {
+              write(STDERR_FILENO, error_message, strlen(error_message)); 
+            }
+        }
+        
+        
+        
+        
+        else 
+        {
+            wait(NULL);
         }
         
 //-----------------------------End-------------------------------------------------------------------------------------
