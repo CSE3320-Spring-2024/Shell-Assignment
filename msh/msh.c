@@ -35,7 +35,7 @@
 int main(int argc, char *argv[])
 {
   char respond[50] = "Not a Command";
-  char *line = "not exit";
+  char *line = NULL;
   size_t size = 0;
   ssize_t chars = -1;
   char del[2] = " ";
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   char argv1 [256][30];
 
   Start:
-  while(strcmp(line, "exit"))
+  while(1)
   {
     printf("msh> ");
     chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
