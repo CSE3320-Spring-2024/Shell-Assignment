@@ -23,6 +23,8 @@
 
 #define _GNU_SOURCE
 
+#include "tokenize_helpers.c"
+
 #include <stdio.h> // for input output (printing)
 #include <unistd.h> // for exec()
 #include <sys/wait.h>
@@ -30,7 +32,7 @@
 #include <errno.h>
 #include <string.h> // for string stuff
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 32
@@ -40,13 +42,13 @@
 int main( int argc, char * argv[] )
 {
   char* command_input = (char*) malloc(MAX_COMMAND_SIZE);
+  char** arg_tokens;
+  int valid_args; 
 
-  // while look only continues if stdin is NOT EOF and if the entered string is NOT "exit"
+  // while loop only continues if stdin is NOT EOF and if the entered string is NOT "exit"
   while(!feof(stdin) && strcmp(command_input, EXIT_COMMAND))
   {
-    char* arg_tokens[MAX_NUM_ARGUMENTS];
-    char* argument_token;
-    int token_count = 0;
+    valid_args = 0;
 
     printf("msh> ");
 
@@ -58,33 +60,14 @@ int main( int argc, char * argv[] )
       char* working_string = strdup(command_input);
       char* original_working_str = working_string;
 
-      if(DEBUG) printf("\nDEBUG: TOKENIZING: \n");
-      // repeat loop until too many arguments have been detected or the end of the string is reached
-      while(((argument_token = strsep(&working_string, WHITESPACE_DEL)) != NULL) &&
-            (token_count < MAX_NUM_ARGUMENTS))
-      {
-        if(DEBUG) printf("DEBUG: %s\n", argument_token);
-        // duplicating tokenized input into arg_tokens[] to access arguments individually later
-        arg_tokens[token_count] = strdup(argument_token);
-
-        if(strlen(arg_tokens[token_count]) == 0)
-        {
-          free(arg_tokens[token_count]);
-          arg_tokens[token_count] = NULL;
-        }
-        token_count++;
-      }
+      // get tokens from user input and store in arg_tokens
+      // update value of the # of valid arguments detected
+      arg_tokens = tokenize_whitespace(MAX_NUM_ARGUMENTS, MAX_COMMAND_SIZE, &valid_args, &working_string, WHITESPACE_DEL, DEBUG);
 
       if(DEBUG) printf("\nDEBUG: You typed: %s", command_input);
 
-
-      if(DEBUG) printf("\nDEBUG: Your tokens:\n");
-      // freeing the arg_tokens[] pointers that held the tokenized user input
-      for(int token_ind = 0; token_ind < token_count; token_ind++)
-      {
-        if(DEBUG) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
-        free(arg_tokens[token_ind]);
-      }
+      // freeing memory
+      free_all_tokens(arg_tokens, valid_args, DEBUG);
       free(original_working_str);
     }
   }
