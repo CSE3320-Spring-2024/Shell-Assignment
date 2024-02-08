@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         argc1++;
       }
     }
-    printf("argc = %d\n", argc1); //For testing
+    //printf("argc = %d\n", argc1); //For testing
 
 
 char argv1[argc1][40];
@@ -82,10 +82,10 @@ if(argc1 > 1)
   {
     strcpy(argv1[i],strtok(NULL, del));
   }
-  for(int i = 0;i < argc1;i++)
-  {
-    printf("%s\n", argv1[i]);
-  }
+  //for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
+  //{
+  //  printf("%s\n", argv1[i]);
+  //}
          //At this point, Custom Argc and Argv are functional
 }
 
@@ -102,15 +102,15 @@ if(argc1 > 1)
       //printf("Moving to new directory %s\n", argv1[1]);
       chdir(argv1[1]);
     }
-    else //User entered a command that is not recognized by shell
+    else //User entered an external command
     {
-      /*
+      
         //This section taken from popen.c in examples
-      //pid = fork();
+      pid = fork();
       if(pid == 0)
       {
           //child
-          
+          /*
           for(int i = 1;i < argc1 - 1;i++)
           {
             int fd = open(argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
@@ -122,7 +122,7 @@ if(argc1 > 1)
             dup2( fd, 1 );
             close( fd );
           }
-        
+        */
          printf("Hello Child\n");
       }
       else if(pid > 0)
@@ -134,7 +134,7 @@ if(argc1 > 1)
       {
         perror( "Fork failed." );
       }
-      */
+      
       printf("%s is not recognized in MSH\n", line);
     }
   }
