@@ -38,7 +38,7 @@ char** tokenize_whitespace(int max_num_arguments, int max_command_size, int* val
 	char** arg_tokens = (char**) calloc(max_num_arguments, sizeof(char**));
 	char* argument_token;
 
-  if(DEBUG) printf("\nDEBUG: TOKENIZING: \n");
+  if(debug) printf("\nDEBUG: TOKENIZING: \n");
 
   while(((argument_token = strsep(working_string, whitespace_del)) != NULL) &&
         ((*valid_arg_num) < max_num_arguments))
@@ -65,7 +65,7 @@ Frees the head pointer
 
 void free_all_tokens(char** arg_tokens, int valid_arguments, int debug)
 {
-  if(DEBUG) printf("\nDEBUG: Your tokens:\n");
+  if(debug) printf("\nDEBUG: Your tokens:\n");
 
   for(int token_ind = valid_arguments - 1; token_ind >= 0; token_ind--)
   {
