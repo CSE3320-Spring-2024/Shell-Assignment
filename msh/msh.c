@@ -124,11 +124,13 @@ if(argc1 > 1)
           }
         */
          printf("Hello Child\n");
+         return 0;
       }
       else if(pid > 0)
       {
         //parent
         wait(NULL);
+        printf("Parent is awake\n");
       }
       else
       {
@@ -138,6 +140,7 @@ if(argc1 > 1)
       printf("%s is not recognized in MSH\n", line);
     }
   }
+  
   free(line);
   return 0;
 }
