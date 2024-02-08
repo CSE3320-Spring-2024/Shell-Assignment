@@ -32,7 +32,7 @@
 #include <errno.h>
 #include <string.h> // for string stuff
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 32
