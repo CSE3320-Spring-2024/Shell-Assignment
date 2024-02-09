@@ -27,6 +27,8 @@
 
 /*
 
+tokenize_whitespace() -
+
 Tokenizes the valid input from user
 Returns a pointer to each seperated input
 Modifies an integer value to the # of valid arguments the funciton detects
@@ -58,6 +60,8 @@ char** tokenize_whitespace(int max_num_arguments, int max_command_size, int* val
 
 /*
 
+free_all_tokens() -
+
 Frees each pointer that allocated space to hold an argument
 Frees the head pointer
 
@@ -67,16 +71,10 @@ void free_all_tokens(char** arg_tokens, int valid_arguments, int debug)
 {
   if(debug) printf("\nDEBUG: Your tokens:\n");
 
-  for(int token_ind = valid_arguments - 1; token_ind >= 0; token_ind--)
+  for(int token_ind = 0; token_ind < valid_arguments; token_ind++)
   {
     if(debug && (strlen(arg_tokens[token_ind]) >= 1)) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
     free(arg_tokens[token_ind]);
   }
   free(arg_tokens);
-}
-
-int command_found()
-{
-  
-  return 0;
 }
