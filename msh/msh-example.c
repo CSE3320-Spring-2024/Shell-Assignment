@@ -125,15 +125,6 @@ int main()
 #define MAX_COMMAND_SIZE 255   
 #define MAX_NUM_ARGUMENTS 32     
 
-
-
-void execute_command(char **args)
-{
-    execvp(args[0], args);
-    perror("execvp"); // Print error if execvp fails
-    exit(1);
-}
-
 int main()
 {
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
@@ -159,48 +150,54 @@ int main()
         token_count++;
     }
 
+char s[100];
 //--------------------------Added code-----------------------------------------------------------------------------
 
         if (strcmp("exit", token[0]) == 0)        // if exit, close the program
         {
-            exit(EXIT_SUCCESS);
+            exit(0);
         }
 
         else if (strcmp("ls", token[0]) == 0)
         {
             pid_t child_pid1 = fork();
-            if(child_pid1 < 0)
+            int status;
+            if(child_pid1 == -1)
             {
                 write(STDERR_FILENO, error_message, strlen(error_message)); 
-                exit(EXIT_SUCCESS);
+                exit(0);
             }
             else if (child_pid1 == 0)                 // Child process
             {
                 execl("/bin/ls", "ls", NULL );
-                exit(EXIT_SUCCESS);
+                exit(0);
             }
-            else if (child_pid1 > 0)                  // Parent waiting for child 
+            else                                      // Parent waiting for child 
             {
-                wait(NULL);
+                waitpid(child_pid1, &status, 0 );
+                fflush( NULL );
             }
-            else
-            {
-              write(STDERR_FILENO, error_message, strlen(error_message)); 
-            }
-        }
+        }     
         
-        
-        
-        
-        else 
+        else if (strcmp("cd", token[0]) == 0)
         {
-            wait(NULL);
-        }
-        
-//-----------------------------End-------------------------------------------------------------------------------------
-        free(head_ptr);
-  }
+     //       if (strcmp("..", token[1]) == 0)
+    //        {
+                chdir(".."); 
+    //        }
 
+    //    else 
+    //    {
+            chdir("..");
+            wait( NULL );
+    //    }
+       }
+
+
+        free(head_ptr);
+
+//-----------------------------End-------------------------------------------------------------------------------------
+  }
   return 0;
 }
 
