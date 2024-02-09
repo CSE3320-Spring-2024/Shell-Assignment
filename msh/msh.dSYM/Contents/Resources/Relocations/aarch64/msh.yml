@@ -2,12 +2,15 @@
 triple:          'arm64-apple-darwin'
 binary-path:     msh
 relocations:
-  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _tokenize_whitespace, symObjAddr: 0x0, symBinAddr: 0x10000301C, symSize: 0x138 }
-  - { offsetInCU: 0x4B, offset: 0x4B, size: 0x8, addend: 0x0, symName: _tokenize_whitespace, symObjAddr: 0x0, symBinAddr: 0x10000301C, symSize: 0x138 }
-  - { offsetInCU: 0xD5, offset: 0xD5, size: 0x8, addend: 0x0, symName: _free_all_tokens, symObjAddr: 0x138, symBinAddr: 0x100003154, symSize: 0xF8 }
-  - { offsetInCU: 0x131, offset: 0x131, size: 0x8, addend: 0x0, symName: _command_found, symObjAddr: 0x230, symBinAddr: 0x10000324C, symSize: 0xFC }
-  - { offsetInCU: 0x1AD, offset: 0x1AD, size: 0x8, addend: 0x0, symName: _search_directory, symObjAddr: 0x32C, symBinAddr: 0x100003348, symSize: 0x2D4 }
-  - { offsetInCU: 0x251, offset: 0x251, size: 0x8, addend: 0x0, symName: _exit_command, symObjAddr: 0x600, symBinAddr: 0x10000361C, symSize: 0xD0 }
-  - { offsetInCU: 0x2AD, offset: 0x2AD, size: 0x8, addend: 0x0, symName: _cd, symObjAddr: 0x6D0, symBinAddr: 0x1000036EC, symSize: 0x21C }
-  - { offsetInCU: 0x30A, offset: 0x30A, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x8EC, symBinAddr: 0x100003908, symSize: 0x358 }
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _allocate_tokens, symObjAddr: 0x0, symBinAddr: 0x1000028B0, symSize: 0x208 }
+  - { offsetInCU: 0x4C, offset: 0x4C, size: 0x8, addend: 0x0, symName: _allocate_tokens, symObjAddr: 0x0, symBinAddr: 0x1000028B0, symSize: 0x208 }
+  - { offsetInCU: 0x118, offset: 0x118, size: 0x8, addend: 0x0, symName: _tokenize_whitespace, symObjAddr: 0x208, symBinAddr: 0x100002AB8, symSize: 0x134 }
+  - { offsetInCU: 0x1B0, offset: 0x1B0, size: 0x8, addend: 0x0, symName: _free_all_tokens, symObjAddr: 0x33C, symBinAddr: 0x100002BEC, symSize: 0x118 }
+  - { offsetInCU: 0x20C, offset: 0x20C, size: 0x8, addend: 0x0, symName: _exit_command, symObjAddr: 0x454, symBinAddr: 0x100002D04, symSize: 0xD4 }
+  - { offsetInCU: 0x25A, offset: 0x25A, size: 0x8, addend: 0x0, symName: _cd, symObjAddr: 0x528, symBinAddr: 0x100002DD8, symSize: 0x21C }
+  - { offsetInCU: 0x2B7, offset: 0x2B7, size: 0x8, addend: 0x0, symName: _run_commands, symObjAddr: 0x744, symBinAddr: 0x100002FF4, symSize: 0x1F0 }
+  - { offsetInCU: 0x375, offset: 0x375, size: 0x8, addend: 0x0, symName: _command_found, symObjAddr: 0x934, symBinAddr: 0x1000031E4, symSize: 0xFC }
+  - { offsetInCU: 0x3F1, offset: 0x3F1, size: 0x8, addend: 0x0, symName: _fork_process, symObjAddr: 0xA30, symBinAddr: 0x1000032E0, symSize: 0x218 }
+  - { offsetInCU: 0x485, offset: 0x485, size: 0x8, addend: 0x0, symName: _search_directory, symObjAddr: 0xC48, symBinAddr: 0x1000034F8, symSize: 0x2D4 }
+  - { offsetInCU: 0x529, offset: 0x529, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0xF1C, symBinAddr: 0x1000037CC, symSize: 0x3E8 }
 ...

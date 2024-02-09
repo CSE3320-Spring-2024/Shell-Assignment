@@ -21,14 +21,116 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "built_in_commands.c"
+
 #include <stdio.h> // for input output (printing)
 #include <stdlib.h> // for malloc()
 #include <string.h> // for string stuff
 #include <unistd.h> // for exec()
 #include <dirent.h> // for accessing directories
 #include <sys/stat.h> // for getting file stats
+#include <fcntl.h> // for pipes
 
-void search_directory(char* search_directory, char** input_command, int* command_found, int max_command_size, int debug);
+void search_directory(char* search_directory, char** input_command, int* command_found, 
+											int max_command_size, int debug);
+
+int command_found(char** input_command, char* bin_path, char* usr_bin_path, 
+									char* usr_local_bin, int max_command_size, int debug);
+
+void fork_process(char** arg_tokens, char** input_command, int valid_arg_count, int write_to_file, int debug, char* error_message);
+
+/*
+
+run_commands() -
+
+runs the commands provided by arg_tokens[]
+
+*/
+
+void run_commands(int batch_mode, char** input_command, char** arg_tokens, int valid_arg_count, int write_to_file, int max_command_size, 
+									int max_num_arguments, char* bin_path, char* usr_bin_path, char* usr_local_bin, int debug, char* error_message)
+{
+  if(valid_arg_count >= 1)
+  {
+    // if the command entered is NOT cd or exit. Check user bin files for the command
+    // if the command is found in the user's bin, for a process and execute the command
+    if(!strcmp(arg_tokens[0], "cd"))
+    {
+      cd(arg_tokens, valid_arg_count, debug, error_message);
+    }
+    else if(!strcmp(arg_tokens[0], "exit"))
+    {
+      exit_command(valid_arg_count, input_command, debug, error_message);
+    }
+    else if(command_found(&arg_tokens[0], bin_path, usr_bin_path, usr_local_bin, max_command_size, debug))
+    {
+    	fork_process(arg_tokens, input_command, valid_arg_count, write_to_file, debug, error_message);
+    }	
+    else 
+    {
+      if(debug) printf("msh: command not found: %s\n\n", arg_tokens[0]);
+      if(strstr(arg_tokens[0], ".") || !strcmp(arg_tokens[0], ">")) write(STDERR_FILENO, error_message, strlen(error_message)); 
+    }
+  }
+
+  // freeing memory
+  free_all_tokens(arg_tokens, valid_arg_count, debug);
+}
+
+/*
+
+fork_process() -
+
+forks a process
+
+*/
+
+void fork_process(char** arg_tokens, char** input_command, int valid_arg_count, int write_to_file, int debug, char* error_message)
+{
+	int output_fd;
+	int child_status_value;
+	pid_t current_pid;
+
+  current_pid = fork();
+
+  if(current_pid < 0)
+  { 
+    if(debug) printf("msh: fork failed");
+    write(STDERR_FILENO, error_message, strlen(error_message)); 
+  }
+  else if(current_pid == 0)
+  {
+    if(debug) printf("\nDEBUG: -----\nCHILD\n-----\n");
+
+    if(write_to_file == -1)
+    {
+    	execv(arg_tokens[0], arg_tokens);
+    }
+    else
+    {
+    	output_fd = open(arg_tokens[write_to_file + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+    	if(output_fd >= 0 && ((valid_arg_count - 1) - write_to_file) == 1)
+    	{
+    		dup2(output_fd, 1);
+    		free(arg_tokens[write_to_file]);
+    		arg_tokens[write_to_file] = NULL;
+    		execv(arg_tokens[0], arg_tokens);
+    	}
+    	else
+    	{
+    		write(STDERR_FILENO, error_message, strlen(error_message)); 
+    	}
+    	close(output_fd);
+    }
+    strcpy((*input_command), "exit\n");
+  }
+  else
+  {
+    waitpid(0, &child_status_value, WCONTINUED);
+    if(debug) printf("\nDEBUG: -----\nPARENT\n-----\n");
+  }
+}
 
 /*
 

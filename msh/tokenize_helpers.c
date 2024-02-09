@@ -27,6 +27,48 @@
 
 /*
 
+allocate_tokens() - 
+
+allocates the memory for tokens
+also checks for '>' within strings and properly splits the string for file writing
+
+*/
+void allocate_tokens(int* valid_arg_count, int* write_to_file, char** arg_tokens, char** working_string, char* argument_token, char* whitespace_del, int debug)
+{
+  if((*write_to_file) == -1 && !strcmp(argument_token, ">"))
+  {
+    (*write_to_file) = (*valid_arg_count);
+
+    arg_tokens[(*valid_arg_count)] = strdup(argument_token);
+    (*valid_arg_count)++;
+  }
+  else if(((*write_to_file) == -1) && strlen(argument_token) > 1 && strstr(argument_token, ">"))
+  {
+    char* temp_str = strdup(argument_token);
+    char* original_temp = temp_str;
+
+    char* split_str_1 = strdup(strsep(&temp_str, ">"));
+    char* split_str_2 = (char*) malloc(2);
+    char* split_str_3 = strdup(strsep(&temp_str, whitespace_del));
+    strcpy(split_str_2, ">");
+
+    arg_tokens[(*valid_arg_count)] = split_str_1;
+    arg_tokens[(*valid_arg_count) + 1] = split_str_2;
+    arg_tokens[(*valid_arg_count) + 2] = split_str_3;
+
+    (*write_to_file) = (*valid_arg_count) + 1;
+    (*valid_arg_count) += 3;
+    free(original_temp);
+  }
+  else
+  {
+    arg_tokens[(*valid_arg_count)] = strdup(argument_token);
+    (*valid_arg_count)++;
+  }
+}
+
+/*
+
 tokenize_whitespace() -
 
 Tokenizes the valid input from user
@@ -35,7 +77,7 @@ Modifies an integer value to the # of valid arguments the funciton detects
 
 */
 
-char** tokenize_whitespace(int max_num_arguments, int max_command_size, int* valid_arg_num, char** working_string, char* whitespace_del, int debug)
+char** tokenize_whitespace(int max_num_arguments, int max_command_size, int* valid_arg_count, int* write_to_file, char** working_string, char* whitespace_del, int debug)
 {
 	char** arg_tokens = (char**) calloc(max_num_arguments, sizeof(char**));
 	char* argument_token;
@@ -43,15 +85,15 @@ char** tokenize_whitespace(int max_num_arguments, int max_command_size, int* val
   if(debug) printf("\nDEBUG: TOKENIZING: \n");
 
   while(((argument_token = strsep(working_string, whitespace_del)) != NULL) &&
-        ((*valid_arg_num) < max_num_arguments))
+        ((*valid_arg_count) < max_num_arguments))
   {
     if(debug) printf("DEBUG: %s\n", argument_token);
 
     // duplicating tokenized input into arg_tokens[] to access arguments individually later
+
     if(strlen(argument_token) >= 1)
     {
-      arg_tokens[(*valid_arg_num)] = strdup(argument_token);
-      (*valid_arg_num)++;
+      allocate_tokens(valid_arg_count, write_to_file, arg_tokens, working_string, argument_token, whitespace_del, debug);
     }
   }
 
@@ -67,14 +109,14 @@ Frees the head pointer
 
 */
 
-void free_all_tokens(char** arg_tokens, int valid_arguments, int debug)
+void free_all_tokens(char** arg_tokens, int valid_arg_count, int debug)
 {
   if(debug) printf("\nDEBUG: Your tokens:\n");
 
-  for(int token_ind = 0; token_ind < valid_arguments; token_ind++)
+  for(int token_ind = 0; token_ind < valid_arg_count; token_ind++)
   {
     if(debug && (strlen(arg_tokens[token_ind]) >= 1)) printf("DEBUG: token %d: %s\n", token_ind, arg_tokens[token_ind]);
-    free(arg_tokens[token_ind]);
+    if(arg_tokens[token_ind] != NULL) free(arg_tokens[token_ind]);
   }
   free(arg_tokens);
 }

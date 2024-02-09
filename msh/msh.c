@@ -25,7 +25,6 @@
 
 #include "tokenize_helpers.c"
 #include "shell_helpers.c"
-#include "built_in_commands.c"
 
 #include <stdio.h>          // for input output (printing)
 #include <unistd.h>         // for exec()
@@ -46,90 +45,100 @@
 #define BIN_PATH "/bin/"
 #define USR_BIN_PATH "/usr/bin/"
 #define USR_LOCAL_BIN "/usr/local/bin/"
-#define ERROR_MESSAGE "An error has occured\n"
+#define ERROR_MESSAGE "An error has occurred\n"
 
 int main( int argc, char * argv[] )
 {
-  char* command_input = (char*) malloc(MAX_COMMAND_SIZE + 1);
+  FILE* fp;
   char** arg_tokens;
+  char* input_command = (char*) malloc(MAX_COMMAND_SIZE + 1);
+  char file_line[MAX_COMMAND_SIZE + 1];
   char cwd[257];
-  int valid_args; 
-  int child_status_value;
-  pid_t current_pid;
+  int valid_arg_count; 
+  int write_to_file;
+  int rc = 0;
+  int batch_mode = 0;
 
-  // while loop only continues if stdin is NOT EOF and if the entered string is NOT "exit"
-  while(!feof(stdin) && strcmp(command_input, EXIT_COMMAND))
+  // if there is no arguments enter interactive mode
+  // if there is one argument enter batch mode
+  if(argc == 1)
   {
-    valid_args = 0;
-
-    if(PWD) getcwd(cwd, sizeof(cwd));
-    if(PWD) printf("\n\n~%s\n", cwd);
-    printf("msh> ");
-
-    // repeat until the user inputs a valid string or input is an EOF
-    while(!feof(stdin) && !fgets(command_input, MAX_COMMAND_SIZE, stdin));
-
-    if(!feof(stdin) && strcmp(command_input, EXIT_COMMAND))
+    // while loop only continues if stdin is NOT EOF and if the entered string is NOT "exit"
+    while(!feof(stdin) && strcmp(input_command, EXIT_COMMAND))
     {
-      // deep copying string from command_input into working_string
-      char* working_string = strdup(command_input);
-      char* original_working_str = working_string;
+      valid_arg_count = 0;
+      write_to_file = -1;
 
-      // get tokens from user input and store in arg_tokens
-      // update value of the # of valid arguments detected
-      arg_tokens = tokenize_whitespace(MAX_NUM_ARGUMENTS, MAX_COMMAND_SIZE, &valid_args, &working_string, WHITESPACE_DEL, DEBUG);
+      if(PWD) getcwd(cwd, sizeof(cwd));
+      if(PWD) printf("\n\n~%s\n", cwd);
+      printf("msh> ");
 
-      if(DEBUG) printf("\nDEBUG: You typed: %s", command_input);
+      // repeat until the user inputs a valid string or input is an EOF
+      while(!feof(stdin) && !fgets(input_command, MAX_COMMAND_SIZE, stdin));
 
-      if(valid_args >= 1)
+      if(!feof(stdin) && strcmp(input_command, EXIT_COMMAND))
       {
+        // deep copying string from input_command into working_string
+        char* working_string = strdup(input_command);
+        char* original_working_str = working_string;
 
-        // if the command entered is NOT cd, exit, or a command found in bin, usr/bin, usr/local/bin/, or the local path
-        // print the command is not found and repeat prompt
-        if(!strcmp(arg_tokens[0], "cd"))
-        {
-          cd(arg_tokens, valid_args, DEBUG, ERROR_MESSAGE);
-        }
-        else if(!strcmp(arg_tokens[0], "exit"))
-        {
-          exit_command(arg_tokens, valid_args, &command_input, DEBUG, ERROR_MESSAGE);
-        }
-        else if(command_found(&arg_tokens[0], BIN_PATH, USR_BIN_PATH, USR_LOCAL_BIN, MAX_COMMAND_SIZE, DEBUG))
-        {
-          current_pid = fork();
+        // get tokens from user input and store in arg_tokens
+        // update value of the # of valid arguments detected
+        arg_tokens = tokenize_whitespace(MAX_NUM_ARGUMENTS, MAX_COMMAND_SIZE, &valid_arg_count, &write_to_file, &working_string, WHITESPACE_DEL, DEBUG);
 
-          if(current_pid < 0)
-          { 
-            if(DEBUG) printf("msh: fork failed");
-            write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE)); 
-          }
-          else if(current_pid == 0)
-          {
-            if(DEBUG) printf("\nDEBUG: -----\nCHILD\n-----\n");
-            execv(arg_tokens[0], arg_tokens);
-            strcpy(command_input, "exit\n");
-          }
-          else
-          {
-            waitpid(0, &child_status_value, WCONTINUED);
-            if(DEBUG) printf("\nDEBUG: -----\nPARENT\n-----\n");
-          }
-        }
-        else 
-        {
-          if(DEBUG) printf("msh: command not found: %s\n\n", arg_tokens[0]);
-          write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE)); 
-        }
+        if(DEBUG) printf("\nDEBUG: You typed: %s", input_command);
+
+        // if there are an appropriate # of arguments, attempt to run the commands the user input
+        run_commands(batch_mode, &input_command, arg_tokens, valid_arg_count, write_to_file, MAX_COMMAND_SIZE, 
+                     MAX_NUM_ARGUMENTS, BIN_PATH, USR_BIN_PATH, USR_LOCAL_BIN, DEBUG, ERROR_MESSAGE);
+
+        free(original_working_str);
       }
-
-      // freeing memory
-      free_all_tokens(arg_tokens, valid_args, DEBUG);
-      free(original_working_str);
     }
   }
+  else if(argc == 2)
+  {
+    batch_mode = 1;
+    fp = fopen(argv[1], "r");
 
-  free(command_input);
+    if(fp != NULL)
+    {
+      while(fgets(file_line, MAX_COMMAND_SIZE + 1, fp) != NULL)
+      {
+        valid_arg_count = 0;
+        write_to_file = -1;
+        // deep copying string from input_command into working_string
+        char* working_string = strdup(file_line);
+        char* original_working_str = working_string;
 
-  return 0;
+        // get tokens from user input and store in arg_tokens
+        // update value of the # of valid arguments detected
+        arg_tokens = tokenize_whitespace(MAX_NUM_ARGUMENTS, MAX_COMMAND_SIZE, &valid_arg_count, &write_to_file, &working_string, WHITESPACE_DEL, DEBUG);
+
+        if(DEBUG) printf("\nDEBUG: File line read: %s", file_line);
+
+        // if there are an appropriate # of arguments, attempt to run the commands the user input
+        run_commands(batch_mode, &input_command, arg_tokens, valid_arg_count, write_to_file, MAX_COMMAND_SIZE, 
+                     MAX_NUM_ARGUMENTS, BIN_PATH, USR_BIN_PATH, USR_LOCAL_BIN, DEBUG, ERROR_MESSAGE);
+
+        free(original_working_str);
+      } 
+    }
+    else
+    {
+      write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE)); 
+      rc = 1;
+    }
+    fclose(fp);
+  }
+  else
+  {
+    write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE)); 
+    rc = 1;
+  }
+
+  free(input_command);
+
+  return rc;
 }
 

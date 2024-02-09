@@ -32,13 +32,13 @@ ensures the program exits when exit is used properly
 
 */
 
-void exit_command(char** arg_tokens, int valid_args, char** command_input, int debug, char* error_message)
+void exit_command(int valid_arg_count, char** command_input, int debug, char* error_message)
 {
-	if(valid_args >= 2)
+	if(valid_arg_count >= 2)
 	{
-		printf("\n%s\n", error_message);
+		write(STDERR_FILENO, error_message, strlen(error_message)); 
 	}
-	else if(valid_args == 1)
+	else if(valid_arg_count == 1)
 	{
 		strcpy((*command_input), "exit\n");
 	}
@@ -56,11 +56,11 @@ changes the directory based on the argument provided to cd
 
 */
 
-void cd(char** arg_tokens, int valid_args, int debug, char* error_message)
+void cd(char** arg_tokens, int valid_arg_count, int debug, char* error_message)
 {
 	char path[257];
 
-	if(valid_args == 2)
+	if(valid_arg_count == 2)
 	{
 		getcwd(path, sizeof(path));
 		if(debug) printf("\nDEBUG: CD COMMAND: print working directory:%s\n", path);
@@ -76,12 +76,12 @@ void cd(char** arg_tokens, int valid_args, int debug, char* error_message)
 			write(STDERR_FILENO, error_message, strlen(error_message)); 
 		}
 	}
-	else if(valid_args > 2)
+	else if(valid_arg_count > 2)
 	{
 		if(debug) printf("cd: too many arguemnts\n\n");
 		write(STDERR_FILENO, error_message, strlen(error_message)); 
 	}
-	else if(valid_args == 1)
+	else if(valid_arg_count == 1)
 	{
 		if(debug) printf("cd: needs one argument\n\n");
 		write(STDERR_FILENO, error_message, strlen(error_message)); 
