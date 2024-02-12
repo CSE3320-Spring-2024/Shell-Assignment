@@ -82,11 +82,11 @@ if(argc1 > 1)
   {
     strcpy(argv1[i],strtok(NULL, del));
   }
-  //for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
-  //{
-  //  printf("%s\n", argv1[i]);
-  //}
-         //At this point, Custom Argc and Argv are functional
+  for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
+  {
+    printf("{%s}\n", argv1[i]);
+  }
+  //At this point, Custom Argc and Argv are functional
 }
 
     if (chars < 0) //Something went terribly wrong here.
@@ -110,20 +110,40 @@ if(argc1 > 1)
       if(pid == 0)
       {
           //child
-          /*
-          for(int i = 1;i < argc1 - 1;i++)
+          printf("Hello Child\n");  //testing fork
+
+          //execl("/bin/ls", "ls", NULL );
+          //exit( EXIT_SUCCESS );
+          char cat[40] = "/bin/";
+          for(int i = 5;i< strlen(argv1[0]) + 5;i++)
+            {
+              cat[i] = argv1[0][i-5];
+            }
+            printf("{%s}\n", cat);
+          
+          execl(cat, argv1[0], NULL );
+
+          //exit( EXIT_SUCCESS );
+          for(int i = 1;i < argc1;i++)
           {
-            int fd = open(argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+            if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
+            {
+            //open file called "entered command". if it doesn't exist, create it.
+            int fd = open(argv[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
+            //O_WRONLY | O_APPEND //from geeksforgeeks.org dup2 tutorial
+            //O_RDWR | O_CREAT, S_IRUSR | S_IWUSR  //From popen.c
             if(fd < 0)
             {
-                perror( "Can't open output file." );
-                exit( 0 );                    
+              perror( "Can't open output file." );  //prints error if file can not be created or found
+              exit(0);                    
             }
-            dup2( fd, 1 );
-            close( fd );
-          }
-        */
-         printf("Hello Child\n");
+            dup2(fd, 1);
+            close(fd);
+            printf("File Updated\n");
+            }
+          
+         }
+
          return 0;
       }
       else if(pid > 0)
