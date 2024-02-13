@@ -17,130 +17,127 @@
 
 #define MAX_COMMAND_SIZE 255    // The maximum command-line size
 
-#define MAX_NUM_ARGUMENTS 32     
+#define MAX_NUM_ARGUMENTS 32  
 
-int main( int argc, char * argv[] )
-{
 
-  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
+// Function to parse input line into constituent pieces
+int parse_input(char *input, char **args) {
+    int count = 0;
+    char *token;
 
-  // error message to print 
-  char error_message[30] = "An error has occurred\n";         
+    // Tokenize the input using space as delimiter
+    token = strtok(input, " \t\n");
+    while (token != NULL && count < MAX_NUM_ARGUMENTS - 1) {
+        args[count++] = token;
+        token = strtok(NULL, " \t\n");
+    }
+    args[count] = NULL; // Null-terminate the argument list
+    return count;
+}
 
-  while( 1 )
-  {
-    // Print out the msh prompt
-    printf ("msh> ");
+int main(int argc, char *argv[]) {
 
-    // Read the command from the commandi line.  The
-    // maximum command that will be read is MAX_COMMAND_SIZE
-    // This while command will wait here until the user
-    // inputs something.
-    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+    char error_message[30] = "An error has occurred\n";           // error message to print 
 
-    /* Parse input */
-    char *token[MAX_NUM_ARGUMENTS];
+    char *input = NULL;
+    size_t input_size = 0;
+    ssize_t input_length;
+    char *args[MAX_NUM_ARGUMENTS];
+    int arg_count;
 
-    int token_count = 0;                                 
-                                                           
-    // Pointer to point to the token
-    // parsed by strsep
-    char *argument_pointer;                                         
-                                                           
-    char *working_string  = strdup( command_string );                
-
-    // we are going to move the working_string pointer so
-    // keep track of its original value so we can deallocate
-    // the correct amount at the end
-    
-    char *head_ptr = working_string;
-    
-    // Tokenize the input with(out) whitespace used as the delimiter
-
-    while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
-              (token_count<MAX_NUM_ARGUMENTS))
-    {
-        // grabs only the non-zero values, tokenizes each command seperately
-        if (strlen(argument_pointer) > 0)                                                 
-        {
-            token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
-            token_count++;
+    // Check if batch mode is enabled
+    FILE *input_file = NULL;
+    if (argc > 1) {
+        input_file = fopen(argv[1], "r");
+        if (input_file == NULL) {
+          write(STDERR_FILENO, error_message, strlen(error_message)); 
+          exit(0);
         }
     }
-    //token[token_count++] = NULL;
 
-        //-------------------------------------------------------------------------------------------------------------------------
-
-        if (token_count > 0)
+    while (1) 
+    {
+        if (input_file)     // Read commands from file in batch mode
+        {    
+            input_length = getline(&input, &input_size, input_file);
+            if (input_length == -1) {
+                break; // Exit loop when end of file is reached
+            }
+            // Remove newline character from input
+            input[input_length - 1] = '\0';
+        } 
+        
+        else                 // Prompt for input in interactive mode
         {
+            printf("msh> ");
+            input_length = getline(&input, &input_size, stdin);
+            if (input_length == -1) {
+                break; // Exit loop when end of file or error occurs
+            }
+            // Remove newline character from input
+            input[input_length - 1] = '\0';
+        }
 
-          if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program
-          {
+        // Parse input into arguments
+        arg_count = parse_input(input, args);
+        if (arg_count == 0) {
+            continue; // Skip empty input
+        }
+
+
+
+
+        // Check for built-in commands
+        if (strcmp(args[0], "exit") == 0)          // Exit command
+        {
             exit(0);
-          }
- 
-          else if (token[0] && strcmp("cd", token[0]) == 0)
-          {
-            if (token_count == 1)
+        } 
+
+        else if (strcmp(args[0], "cd") == 0)        // CD command
+        {
+            if (arg_count != 2) 
             {
-              if (chdir("") == -1) 
-              {
-                // print error if token failed
-                write(STDERR_FILENO, error_message, strlen(error_message)); 
-              }
-            }
-            else if (token_count != 2) 
-            {
-              // print error if theres more than one arg attached to cd
-              write(STDERR_FILENO, error_message, strlen(error_message));             
+                write(STDERR_FILENO, error_message, strlen(error_message));
             } 
-            else 
-            {
-              if (chdir(token[1]) == -1) 
+            else
+            { 
+              if (chdir(args[1]) == -1) 
               {
-                // print error if second token failed
-                write(STDERR_FILENO, error_message, strlen(error_message)); 
+                write(STDERR_FILENO, error_message, strlen(error_message));
               }
-            }
-          }
-
-
-
-
-           else if (token[0] && strcmp("ls", token[0]) == 0)
-          {
-            pid_t child_pid1 = fork();
-            int status;
-            if(child_pid1 == -1)
-            {
-              write(STDERR_FILENO, error_message, strlen(error_message)); 
-              exit(-1);
-            }
-            else if (child_pid1 == 0)                 // Child process
-            {
-              execl("/bin/ls", "ls", NULL );
-              exit(0);
-            }
-            else                                      // Parent waiting for child 
-            {
-              waitpid(child_pid1, &status, 0 );
-              fflush( NULL );
-            }
-        }  
-          
+            } 
         }
-  // /*
-    // Code to print out each individual token
-    int token_index  = 0;
-    for( token_index = 0; token_index < token_count; token_index ++ ) 
-    {
-      printf("token[%d] = %s\n", token_index, token[token_index] );  
+
+
+
+        pid_t child_pid = fork();         // Fork a child process to execute the command
+        int status;
+        if (child_pid == -1)              // Checks if child process fails
+        {
+           write(STDERR_FILENO, error_message, strlen(error_message)); 
+           exit(0);
+        } 
+        else if (child_pid == 0)          // Child process
+        {
+           if ( execvp(args[0], args) == -1 )        
+           {
+              write(STDERR_FILENO, error_message, strlen(error_message)); 
+              exit(0);
+           }
+        } 
+        else                              // Parent process waits for child to complete
+        {
+            waitpid(child_pid, &status, 0 );   
+            fflush( NULL ); 
+        }
     }
 
-//*/
-    free( head_ptr );
+    // Free allocated memory
+    free(input);
+    if (input_file) 
+    {
+        fclose(input_file);
+    }
 
-  }
-  return 0;
-  // e2520ca2-76f3-90d6-0242ac1210022
+    return 0;
 }
