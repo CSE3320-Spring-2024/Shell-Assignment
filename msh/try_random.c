@@ -67,7 +67,8 @@ int main()
             token_count++;
         }
     }
-    
+    //token[token_count++] = NULL;
+
         //-------------------------------------------------------------------------------------------------------------------------
 
         if (token_count > 0)
@@ -78,7 +79,35 @@ int main()
             exit(0);
           }
  
-          else if (token[0] && strcmp("ls", token[0]) == 0)
+          else if (token[0] && strcmp("cd", token[0]) == 0)
+          {
+            if (token_count == 1)
+            {
+              if (chdir("") == -1) 
+              {
+                // print error if token failed
+                write(STDERR_FILENO, error_message, strlen(error_message)); 
+              }
+            }
+            else if (token_count != 2) 
+            {
+              // print error if theres more than one arg attached to cd
+              write(STDERR_FILENO, error_message, strlen(error_message));             
+            } 
+            else 
+            {
+              if (chdir(token[1]) == -1) 
+              {
+                // print error if second token failed
+                write(STDERR_FILENO, error_message, strlen(error_message)); 
+              }
+            }
+          }
+
+
+
+
+           else if (token[0] && strcmp("ls", token[0]) == 0)
           {
             pid_t child_pid1 = fork();
             int status;
@@ -98,17 +127,17 @@ int main()
               fflush( NULL );
             }
         }  
-
+          
         }
-/*
+  // /*
     // Code to print out each individual token
     int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
     {
       printf("token[%d] = %s\n", token_index, token[token_index] );  
     }
-*/
 
+//*/
     free( head_ptr );
 
   }
