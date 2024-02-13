@@ -24,6 +24,9 @@ int main()
 
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
 
+  // error message to print 
+  char error_message[30] = "An error has occurred\n";         
+
   while( 1 )
   {
     // Print out the msh prompt
@@ -52,41 +55,59 @@ int main()
     
     char *head_ptr = working_string;
     
-    // Tokenize the input with whitespace used as the delimiter
-
+    // Tokenize the input with(out) whitespace used as the delimiter
 
     while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
               (token_count<MAX_NUM_ARGUMENTS))
     {
-        if (strlen(argument_pointer) > 0) 
+        // grabs only the non-zero values, tokenizes each command seperately
+        if (strlen(argument_pointer) > 0)                                                 
         {
             token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
-            if( strlen( token[token_count] ) == 0 )
-            {
-                token[token_count] = NULL;
-            }
             token_count++;
         }
     }
     
         //-------------------------------------------------------------------------------------------------------------------------
 
-
-    int token_index  = 0;
-
         if (token_count > 0)
         {
 
-        if (strcmp("exit", token[0]) == 0)        // if exit, close the program
-        {
+          if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program
+          {
             exit(0);
-        }
-        }
+          }
+ 
+          else if (token[0] && strcmp("ls", token[0]) == 0)
+          {
+            pid_t child_pid1 = fork();
+            int status;
+            if(child_pid1 == -1)
+            {
+              write(STDERR_FILENO, error_message, strlen(error_message)); 
+              exit(-1);
+            }
+            else if (child_pid1 == 0)                 // Child process
+            {
+              execl("/bin/ls", "ls", NULL );
+              exit(0);
+            }
+            else                                      // Parent waiting for child 
+            {
+              waitpid(child_pid1, &status, 0 );
+              fflush( NULL );
+            }
+        }  
 
+        }
+/*
+    // Code to print out each individual token
+    int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
     {
       printf("token[%d] = %s\n", token_index, token[token_index] );  
     }
+*/
 
     free( head_ptr );
 

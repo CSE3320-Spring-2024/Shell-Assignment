@@ -14,20 +14,23 @@
 #define WHITESPACE " \t\n"
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 32
+#define ERROR_MESSAGE "An error has occurred\n"
 #define MAX_PATH_LENGTH 1024
 
-/*
+void execute_exit() {
+    exit(0);
+}
+
 void execute_cd(char *dir) {
     if (dir == NULL) {
-        write(STDERR_FILENO, error_message, strlen(error_message)); 
-        exit(-1);
+        write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE));
+        return;
     }
 
     if (chdir(dir) != 0) {
         perror("cd");
     }
 }
-*/
 
 void execute_path(char *new_path) {
     if (new_path == NULL) {
@@ -88,99 +91,64 @@ void execute_command_with_redirection(char **args, char *output_file) {
     }
 }
 
-int main() 
-{
-  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
-  char error_message[30] = "An error has occurred\n";
+int main(int argc, char *argv[]) {
+    char *command_string = (char *)malloc(MAX_COMMAND_SIZE);
 
-  while( 1 )
-  {
-    printf ("msh> ");
-    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
-    char *token[MAX_NUM_ARGUMENTS];
-    int token_count = 0;                                                                                 
-    char *argument_pointer;                                                                                        
-    char *working_string  = strdup( command_string );                
-    char *head_ptr = working_string;
+    while (1) {
+        printf("msh> ");
+        while (!fgets(command_string, MAX_COMMAND_SIZE, stdin));
+
+        char *token[MAX_NUM_ARGUMENTS];
+        int token_count = 0;
+        char *argument_pointer;
+        char *working_string = strdup(command_string);
+        char *head_ptr = working_string;
+
     while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
               (token_count<MAX_NUM_ARGUMENTS))
     {
-      token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
-      if( strlen( token[token_count] ) == 0 )
-      {
-        token[token_count] = NULL;
-      }
-        token_count++;
+        // grabs only the non-zero values, tokenizes each command seperately
+        if (strlen(argument_pointer) > 0)                                                 
+        {
+            token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
+            token_count++;
+        }
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------
-
-
-        if (token_count > 0)
-        {
-            if (strcmp(token[0], "exit") == 0) 
-            {
-                exit(0);
-            } 
-            else if (strcmp(token[0], "cd") == 0) 
-            {
-                if (token[1] == NULL) 
-                {
-                    write(STDERR_FILENO, error_message, strlen(error_message)); 
-                    exit(-1);
-                }
-                else if (token[1] != 0) 
-                {
-                    perror("cd");
-                }
-            } 
-            
-            else if (strcmp(token[0], "path") == 0) 
-            {
+        if (token_count > 0) {
+            if (strcmp(token[0], "exit") == 0) {
+                execute_exit();
+            } else if (strcmp(token[0], "cd") == 0) {
+                execute_cd(token[1]);
+            } else if (strcmp(token[0], "path") == 0) {
                 execute_path(token[1]);
-            } 
-            else 
-            {
+            } else {
                 // Check for redirection
                 int i;
                 char *output_file = NULL;
-                for (i = 0; i < token_count; i++) 
-                {
-                    if (strcmp(token[i], ">") == 0) 
-                    {
+                for (i = 0; i < token_count; i++) {
+                    if (strcmp(token[i], ">") == 0) {
                         // Redirection detected
-                        if (i + 1 < token_count) 
-                        {
+                        if (i + 1 < token_count) {
                             output_file = token[i + 1];
                             token[i] = NULL; // Remove redirection operator from command
                             break;
-                        }
-                        else
-                        {
-                            write(STDERR_FILENO, error_message, strlen(error_message)); 
-                            exit(-1);
+                        } else {
+                            write(STDERR_FILENO, ERROR_MESSAGE, strlen(ERROR_MESSAGE));
+                            break;
                         }
                     }
                 }
 
-                if (output_file != NULL) 
-                {
+                if (output_file != NULL) {
                     execute_command_with_redirection(token, output_file);
-                } 
-                else 
-                {
+                } else {
                     execute_command(token);
                 }
             }
         }
 
-
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------
-        for (int i = 0; i < token_count; i++) 
-        {
+        for (int i = 0; i < token_count; i++) {
             free(token[i]);
         }
 
@@ -190,4 +158,3 @@ int main()
     free(command_string);
     return 0;
 }
-
