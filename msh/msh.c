@@ -29,10 +29,115 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
+#include <ctype.h>
+#include <dirent.h>
+//#include <sys/stat.h>
+//#include <fcntl.h>
+
+
+#define WHITESPACE " \t\n"
+#define MAX_COMMAND_SIZE 255
+#define MAX_NUM_ARGUMENTS 32
+
 
 
 int main( int argc, char * argv[] )
 {
+
+  char * command_string=(char*)malloc(MAX_COMMAND_SIZE);
+
+  char *dir=" ";
+  int ret;
+
+
+ 
+
+
+  while(1)
+  {
+    printf("msh> ");
+    
+
+
+    //exits
+
+    if(command_string[0]=='e'&& command_string[1]=='x'&&command_string[2]=='i'&&command_string[3]=='t'&&command_string[4]=='\n')
+    {
+      exit(0);
+    }  
+
+    //cd 
+    if(command_string[0]=='c'&& command_string[1]=='d'&& command_string[2]=='\n')
+    {
+       // int chdir(const char *path);
+       ret=chdir(dir);
+
+      
+    }
+  
+
+
+
+
+    while(!fgets(command_string,MAX_COMMAND_SIZE,stdin));
+
+    char *token [MAX_NUM_ARGUMENTS];
+
+    int token_count=0;
+
+    char *argument_pointer;
+    
+    char *working_string=strdup(command_string);
+
+    char *head_ptr=working_string;
+
+    while(((argument_pointer=strsep(&working_string,WHITESPACE))!=NULL)&& (token_count<MAX_NUM_ARGUMENTS))
+    {
+      token[token_count]=strndup(argument_pointer,MAX_COMMAND_SIZE);
+      if(strlen(token[token_count])==0)
+      {
+        token[token_count]=NULL;
+
+      }
+      token_count++;
+
+    }
+
+    
+    
+    pid_t pid=fork();
+
+    if(pid<0)//fork failed
+    {
+      perror("failed");
+      exit(0);
+
+    }
+    else if(pid==0) //child (new process)
+    {
+      
+      execv(token[0],token);
+      exit(0);
+
+    }
+    else //parent
+    {
+      wait(NULL); //waits until child processes
+    }
+    
+
+    int token_index=0;
+    for(token_index=0;token_index<token_count;token_index++)
+    {
+      printf("token[%d]=%s\n",token_index,token[token_index]);
+
+    }
+    free(head_ptr);
+
+
+    
+  }
   return 0;
 }
 
