@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
 
     // Free allocated memory
     free(input);
+    
     if (input_file) 
     {
         fclose(input_file);

@@ -129,7 +129,7 @@ int main()
         }  
           
         }
-  // /*
+   /*
     // Code to print out each individual token
     int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
@@ -137,7 +137,7 @@ int main()
       printf("token[%d] = %s\n", token_index, token[token_index] );  
     }
 
-//*/
+*/
     free( head_ptr );
 
   }
