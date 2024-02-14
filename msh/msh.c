@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
       if(chars <= 0) continue;
       strcpy(temp, line); // keeps original copy safe from strtok
       argv1[0] = strdup(strtok(temp, del)); //assigns first command
+      argv1[1] = NULL;
       if(argc1 > 1)
       {
         for(int i = 1;i < argc1;i++)     //assigns each additional command
