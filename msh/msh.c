@@ -37,6 +37,10 @@
 
 int main(int argc, char *argv[])
 {
+  if(argc > 2) {
+    fprintf(stderr, "An error has occurred\n");
+    exit(1);
+  }
   char *line = malloc(255);
   size_t size = 0;
   ssize_t chars;
@@ -44,8 +48,9 @@ int main(int argc, char *argv[])
   pid_t pid;
   FILE *file;
   int flip = 0;
+  //int cnt = 0;
 
-  Start:
+  //Start:
   while(1) //runs until exit is commanded by user
   {
     
@@ -60,17 +65,23 @@ int main(int argc, char *argv[])
         if(file == NULL)
         {
           
-          printf("An error has occurred");
-          exit(0);
+          fprintf(stderr,"An error has occurred\n");
+          exit(1);
         }
       }
       if (fgets(line, 255, file) != NULL)
       {
         chars = strlen(line);
+        //cnt ++;
       }
       else
       {
-        exit(0);
+        //printf("cnt: %d\n", cnt);
+        /*if(cnt < 1)
+          exit(1);
+        else
+          exit(0);*/
+          exit(0);
       }
     }
     else
@@ -93,10 +104,11 @@ int main(int argc, char *argv[])
     {
       if(line[i] == ' ') //space indicates a new command
       {
-        if(line[i-1] == ' ') //two spaces in a row is a bad command
+        if(line[i+1] != ' ') //two spaces in a row is a bad command
         {
-          printf("An error has occurred");
-          goto Start;     //ignores bad command and returns to Start:
+          //fprintf(stderr, "An error has occurred\n");
+          //goto Start;     //ignores bad command and returns to Start:
+          //argc1++;
         }
         argc1++;
       }
@@ -108,11 +120,14 @@ int main(int argc, char *argv[])
     strcpy(temp, line); // keeps original copy safe from strtok
     argv1[0] = strdup(strtok(temp, del)); //assigns first command
     argv1[1] = NULL;
+
     if(argc1 > 1)
     {
       for(int i = 1;i < argc1;i++)     //assigns each additional command
       {
-        argv1[i] = strdup(strtok(NULL, del));
+        char *tok = strtok(NULL, del);
+        if(tok == NULL) break;
+        argv1[i] = strdup(tok);
         argv1[i + 1] = NULL;
       }
     }
@@ -120,7 +135,7 @@ int main(int argc, char *argv[])
 
     if (chars < 0) //Something went terribly wrong here.
     {
-      puts("An error has occurred"); 
+      fprintf(stderr, "An error has occurred\n"); 
     }
     else if(strcmp(argv1[0], "exit") == 0) //user input exit command
     {
@@ -146,9 +161,10 @@ int main(int argc, char *argv[])
         //////////////////////////////////////redirect
         for(int i = 1;i < argc1;i++)
         {
+          if(argv1[i] == NULL) break;
           if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
           {
-            if(argv1[i+1] == NULL)
+            if((argv1[i+1] == NULL) || (argv1[i+2] != NULL))
             {
               fprintf(stderr, "An error has occurred\n");
               exit(0);
@@ -171,9 +187,8 @@ int main(int argc, char *argv[])
         }
         /////////////////////////////////////////
 
-        char cat[40];
+        char cat[400];
         sprintf(cat, "%s/%s", "/bin/", argv1[0]);
-  
         if(access(cat, X_OK) == 0) //checks if command exists in Bin. 
         {
         execv(cat, (char**)argv1);
