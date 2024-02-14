@@ -68,26 +68,27 @@ int main(int argc, char *argv[])
         argc1++;
       }
     }
-    //printf("argc = %d\n", argc1); //For testing
+    printf("argc = %d\n", argc1); //For testing
+    
+    
 
-
-char argv1[argc1][40];
-strcpy(argv1[0]," ");
-char temp[256];
-strcpy(temp, line); // keeps original copy safe from strtok
-strcpy(argv1[0],strtok(temp, del)); //assigns first command
-if(argc1 > 1)
-{
-  for(int i = 1;i < argc1;i++)     //assigns each additional command
-  {
-    strcpy(argv1[i],strtok(NULL, del));
-  }
-  for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
-  {
-    printf("{%s}\n", argv1[i]);
-  }
-  //At this point, Custom Argc and Argv are functional
-}
+    char argv1[argc1][40];
+    char temp[256];
+    strcpy(temp, line); // keeps original copy safe from strtok
+    strcpy(argv1[0],strtok(temp, del)); //assigns first command
+    if(argc1 > 1)
+    {
+      
+      for(int i = 1;i < argc1;i++)     //assigns each additional command
+      {
+        strcpy(argv1[i],strtok(NULL, del));
+      }
+      for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
+      {
+        printf("{%s}\n", argv1[i]);
+      }
+    }
+    //At this point, Custom Argc and Argv are functional
 
     if (chars < 0) //Something went terribly wrong here.
     {
@@ -110,31 +111,61 @@ if(argc1 > 1)
       if(pid == 0)
       {
           //child
-          printf("Hello Child\n");  //testing fork
-
           //execl("/bin/ls", "ls", NULL );
           //exit( EXIT_SUCCESS );
-          char cat[40] = "/bin/";
+          char cat[40];
+          sprintf(cat, "%s/%s", "/bin/", argv1[0]);
           for(int i = 5;i< strlen(argv1[0]) + 5;i++)
-            {
-              cat[i] = argv1[0][i-5];
-            }
-            printf("{%s}\n", cat);
+          {
+            cat[i] = argv1[0][i-5];
+          }
+          cat[strlen(cat) - 1]= '\0';
+          printf("{%s}\n", cat);
           
-          execl(cat, argv1[0], NULL );
+          if(access(cat, X_OK) == 0) //checks if File is valid. 
+          {
+            switch (argc1)
+            {
+            case (1):
+            execl(cat, argv1[0], NULL);
+            break;
+            case (2): 
+            execl(cat, cat, argv1[0], argv1[1], NULL);
+            break;
+            case (3):
+            execl(cat, cat, cat, argv1[0], argv1[1], argv1[2], NULL);
+            break;
+            case (4):
+            execl(cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], NULL);
+            break;
+            case (5):
+            execl(cat, cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], argv1[4], NULL);
+            break;
+            case (6):
+            execl(cat, cat, cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
+            break;
+            default:
+              printf("Too many arguments");
+              break;
+            }
+          }
+          else
+          {
+            printf("Command not found: %s\n", argv1[0]);
+          }
 
           //exit( EXIT_SUCCESS );
+        
           for(int i = 1;i < argc1;i++)
           {
             if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
             {
             //open file called "entered command". if it doesn't exist, create it.
             int fd = open(argv[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
-            //O_WRONLY | O_APPEND //from geeksforgeeks.org dup2 tutorial
             //O_RDWR | O_CREAT, S_IRUSR | S_IWUSR  //From popen.c
             if(fd < 0)
             {
-              perror( "Can't open output file." );  //prints error if file can not be created or found
+              perror("Can't open output file.");  //prints error if file can not be created or found
               exit(0);                    
             }
             dup2(fd, 1);
@@ -150,17 +181,16 @@ if(argc1 > 1)
       {
         //parent
         wait(NULL);
-        printf("Parent is awake\n");
+        //printf("Parent is awake\n");
       }
       else
       {
         perror( "Fork failed." );
       }
       
-      printf("%s is not recognized in MSH\n", line);
+      //printf("%s is not recognized in MSH\n", line);
     }
   }
-  
   free(line);
   return 0;
 }
