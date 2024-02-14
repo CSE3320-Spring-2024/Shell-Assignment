@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   Start:
   while(1) //runs until exit is commanded by user
   {
-    printf("msh> ");
+    
 
     if(argc == 2)
     {
@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
         file = fopen(argv[1], "r");
         if(file == NULL)
         {
-          printf("An error has occured.\n");
+          
+          printf("An error has occurred");
           exit(0);
         }
       }
@@ -74,6 +75,8 @@ int main(int argc, char *argv[])
     }
     else
     {
+      //user mode
+      printf("msh> ");
       chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
       if(chars <= 0) 
         continue;
@@ -92,7 +95,7 @@ int main(int argc, char *argv[])
       {
         if(line[i-1] == ' ') //two spaces in a row is a bad command
         {
-          printf("An error has occured\n");
+          printf("An error has occurred");
           goto Start;     //ignores bad command and returns to Start:
         }
         argc1++;
@@ -117,7 +120,7 @@ int main(int argc, char *argv[])
 
     if (chars < 0) //Something went terribly wrong here.
     {
-      puts("An error has occured\n"); 
+      puts("An error has occurred"); 
     }
     else if(strcmp(argv1[0], "exit") == 0) //user input exit command
     {
@@ -125,7 +128,10 @@ int main(int argc, char *argv[])
     }
     else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
     {
-      chdir(argv1[1]);
+      if(argc1 != 2)
+        printf("An error has occurred");
+      else
+        chdir(argv1[1]);
     }
     else //User entered an external command
     {
@@ -142,7 +148,7 @@ int main(int argc, char *argv[])
             int fd = open(argv1[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
             if(fd < 0)
             {
-              perror("Can't open output file.\n");  //prints error if file can not be created or found
+              perror("An error has occurred");  //prints error if file can not be created or found
               exit(0);                    
             }
             dup2(fd, 1);
@@ -158,38 +164,12 @@ int main(int argc, char *argv[])
   
         if(access(cat, X_OK) == 0) //checks if command exists in Bin. 
         {
-          /*
-          switch (argc1)  //This switch is based on how many arguments are enterred into the msh shell.
-          {
-            case (1):
-            execl(cat, argv1[0], NULL);
-            break;
-            case (2): 
-            execl(cat, cat, argv1[1], NULL); //found mulitple argument method on BlackBerry QNX website
-            break;
-            case (3):
-            execl(cat, cat, argv1[1], argv1[2], NULL);
-            break;
-            case (4):
-            execl(cat, cat, argv1[1], argv1[2], argv1[3], NULL);
-            break;
-            case (5):
-            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], NULL);
-            break;
-            case (6):
-            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
-            break;
-            default:
-            printf("An error has occured");
-            break;
-          }
-          */
         execv(cat, (char**)argv1);
         return 0;
         }
         else
         {
-          printf("An error has occured\n");
+          printf("An error has occurred");
           return 0;
         }
       }
@@ -200,11 +180,9 @@ int main(int argc, char *argv[])
       }
       else
       {
-        perror("Fork failed.\n");
+        perror("An error has occurred");
       }
     }
-      
-    
   }
   return 0;
 }
