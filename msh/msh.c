@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         argc1++;
       }
     }
-    printf("argc = %d\n", argc1); //For testing
+    //printf("argc = %d\n", argc1); //For testing
     
     
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
       }
       for(int i = 0;i < argc1;i++) //prints all argv1 entries seperately
       {
-        printf("{%s}\n", argv1[i]);
+        //printf("{%s}\n", argv1[i]);
       }
     }
     //At this point, Custom Argc and Argv are functional
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
             cat[i] = argv1[0][i-5];
           }
           cat[strlen(cat) - 1]= '\0';
-          printf("{%s}\n", cat);
+          //printf("{%s}\n", cat);
           
           if(access(cat, X_OK) == 0) //checks if File is valid. 
           {
@@ -130,23 +130,23 @@ int main(int argc, char *argv[])
             execl(cat, argv1[0], NULL);
             break;
             case (2): 
-            execl(cat, cat, argv1[0], argv1[1], NULL);
+            execl(cat, cat, argv1[1], NULL);
             break;
             case (3):
-            execl(cat, cat, cat, argv1[0], argv1[1], argv1[2], NULL);
+            execl(cat, cat, argv1[1], argv1[2], NULL);
             break;
             case (4):
-            execl(cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], NULL);
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], NULL);
             break;
             case (5):
-            execl(cat, cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], argv1[4], NULL);
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], NULL);
             break;
             case (6):
-            execl(cat, cat, cat, cat, cat, cat, argv1[0], argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
             break;
             default:
-              printf("Too many arguments");
-              break;
+            printf("Too many arguments");
+            break;
             }
           }
           else
