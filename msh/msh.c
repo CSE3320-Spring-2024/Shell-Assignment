@@ -32,112 +32,99 @@
 #include <signal.h>
 #include <ctype.h>
 #include <dirent.h>
-//#include <sys/stat.h>
-//#include <fcntl.h>
 
+#define WHITESPACE " \t\n"      // We want to split our command line up into tokens
+                                // so we need to define what delimits our tokens.
+                                // In this case  white space
+                                // will separate the tokens on our command line
 
-#define WHITESPACE " \t\n"
-#define MAX_COMMAND_SIZE 255
-#define MAX_NUM_ARGUMENTS 32
+#define MAX_COMMAND_SIZE 255    // The maximum command-line size
 
+#define MAX_NUM_ARGUMENTS 32     
 
-
-int main( int argc, char * argv[] )
+int main()
 {
 
-  char * command_string=(char*)malloc(MAX_COMMAND_SIZE);
+  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
 
-  char *dir=" ";
-  int ret;
-
-
- 
-
-
-  while(1)
+  while( 1 )
   {
-    printf("msh> ");
+    // Print out the msh prompt
+    printf ("msh> ");
+
+    // Read the command from the commandi line.  The
+    // maximum command that will be read is MAX_COMMAND_SIZE
+    // This while command will wait here until the user
+    // inputs something.
+    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+
+    /* Parse input */
+    char *token[MAX_NUM_ARGUMENTS];
+
+    int token_count = 0;                                 
+                                                           
+    // Pointer to point to the token
+    // parsed by strsep
+    char *argument_pointer;                                         
+                                                           
+    char *working_string  = strdup( command_string );                
+
+    // we are going to move the working_string pointer so
+    // keep track of its original value so we can deallocate
+    // the correct amount at the end
     
-
-
-    //exits
-
-    if(command_string[0]=='e'&& command_string[1]=='x'&&command_string[2]=='i'&&command_string[3]=='t'&&command_string[4]=='\n')
-    {
-      exit(0);
-    }  
-
-    //cd 
-    if(command_string[0]=='c'&& command_string[1]=='d'&& command_string[2]=='\n')
-    {
-       // int chdir(const char *path);
-       ret=chdir(dir);
-
-      
-    }
-  
-
-
-
-
-    while(!fgets(command_string,MAX_COMMAND_SIZE,stdin));
-
-    char *token [MAX_NUM_ARGUMENTS];
-
-    int token_count=0;
-
-    char *argument_pointer;
+    char *head_ptr = working_string;
     
-    char *working_string=strdup(command_string);
-
-    char *head_ptr=working_string;
-
-    while(((argument_pointer=strsep(&working_string,WHITESPACE))!=NULL)&& (token_count<MAX_NUM_ARGUMENTS))
+    // Tokenize the input with whitespace used as the delimiter
+    while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
+              (token_count<MAX_NUM_ARGUMENTS))
     {
-      token[token_count]=strndup(argument_pointer,MAX_COMMAND_SIZE);
-      if(strlen(token[token_count])==0)
+      token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
+      if( strlen( token[token_count] ) == 0 )
       {
-        token[token_count]=NULL;
+        token[token_count] = NULL;
+      }
+        token_count++;
+    }
+
+    if(strcmp("exit", token[0]) == 0){
+      exit(0);
+    } else if(strcmp("cd", token[0]) == 0){
+      
+    } else {
+        pid_t pid=fork();
+
+      if(pid<0)//fork failed
+      {
+        perror("failed");
+        exit(0);
 
       }
-      token_count++;
+      else if(pid==0) //child (new process)
+      {
+        
+        execv(token[0],token); ///child would die become the command 
+        exit(0);
 
+      }
+      else //parent
+      {
+        wait(NULL); //waits until child processes
+      }
     }
+    // Now print the tokenized input as a debug check
+    // \TODO Remove this code and replace with your shell functionality
 
-    
-    
-    pid_t pid=fork();
-
-    if(pid<0)//fork failed
+    int token_index  = 0;
+    for( token_index = 0; token_index < token_count; token_index ++ ) 
     {
-      perror("failed");
-      exit(0);
-
+      printf("token[%d] = %s\n", token_index, token[token_index] );  
     }
-    else if(pid==0) //child (new process)
-    {
-      
-      execv(token[0],token);
-      exit(0);
 
-    }
-    else //parent
-    {
-      wait(NULL); //waits until child processes
-    }
-    
+    free( head_ptr );
 
-    int token_index=0;
-    for(token_index=0;token_index<token_count;token_index++)
-    {
-      printf("token[%d]=%s\n",token_index,token[token_index]);
-
-    }
-    free(head_ptr);
-
-
-    
   }
   return 0;
+  // e2520ca2-76f3-90d6-0242ac1210022
 }
 
