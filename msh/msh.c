@@ -37,149 +37,174 @@
 
 int main(int argc, char *argv[])
 {
-  char *line = NULL;
+  char *line = malloc(255);
   size_t size = 0;
   ssize_t chars;
   char del[2] = " ";
   pid_t pid;
+  FILE *file;
+  int flip = 0;
 
   Start:
   while(1) //runs until exit is commanded by user
   {
     printf("msh> ");
-    chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
-    if(chars <= 0) 
-      continue;
-    //if (chars <= 0)
-    //{
-    //  printf("An error has occurred\n");
-    //}
-    //else 
-    //{
-      while(chars > 0 && isspace(line[chars - 1])) //Removes extraneous spaces at end of last command
+
+    if(argc == 2)
+    {
+      //batchmode
+      if (flip == 0)
       {
-        line[chars - 1] = '\0';
-        chars--;
-      }
-      line[chars] = '\0'; //Ensures last character is a null terminator
-      int argc1 = 1; //argc will always be at least 1
-      for(int i = 0;i<chars -1;i++) //counts argc
-      {
-        if(line[i] == ' ') //space indicates a new command
+        flip = 1;
+        file = fopen(argv[1], "r");
+        if(file == NULL)
         {
-          if(line[i-1] == ' ') //two spaces in a row is a bad command
-          {
-            printf("An error has occured\n");
-            goto Start;     //ignores bad command and returns to Start:
-          }
-          argc1++;
+          printf("An error has occured.\n");
+          exit(0);
         }
       }
-
-      char *argv1[argc1 + 1];
-      char temp[256];
-      if(chars <= 0) continue;
-      strcpy(temp, line); // keeps original copy safe from strtok
-      argv1[0] = strdup(strtok(temp, del)); //assigns first command
-      argv1[1] = NULL;
-      if(argc1 > 1)
+      if (fgets(line, 255, file) != NULL)
       {
-        for(int i = 1;i < argc1;i++)     //assigns each additional command
-        {
-          argv1[i] = strdup(strtok(NULL, del));
-          argv1[i + 1] = NULL;
-        }
+        chars = strlen(line);
       }
-      //At this point, Custom Argc and Argv are functional
-
-      if (chars < 0) //Something went terribly wrong here.
-      {
-        puts("An error has occured\n"); 
-      }
-      else if(strcmp(argv1[0], "exit") == 0) //user input exit command
+      else
       {
         exit(0);
       }
-      else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
-      {
-        chdir(argv1[1]);
-      }
-      else //User entered an external command
-      {
-        pid = fork();
-        if(pid == 0)
-        {
-          //child
-          //////////////////////////////////////redirect
-          for(int i = 1;i < argc1;i++)
-          {
-            if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
-            {
-              //open file called "entered command". if it doesn't exist, create it.
-              int fd = open(argv[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
-              if(fd < 0)
-              {
-                perror("Can't open output file.\n");  //prints error if file can not be created or found
-                exit(0);                    
-              }
-              dup2(fd, 1);
-              close(fd);
-              printf("File Updated\n");
-            }
-          }
-          /////////////////////////////////////////
+    }
+    else
+    {
+      chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
+      if(chars <= 0) 
+        continue;
+    }
 
-          char cat[40];
-          sprintf(cat, "%s/%s", "/bin/", argv1[0]);
-    
-          if(access(cat, X_OK) == 0) //checks if command exists in Bin. 
+    while(chars > 0 && isspace(line[chars - 1])) //Removes extraneous spaces at end of last command
+    {
+      line[chars - 1] = '\0';
+      chars--;
+    }
+    line[chars] = '\0'; //Ensures last character is a null terminator
+    int argc1 = 1; //argc will always be at least 1
+    for(int i = 0;i<chars -1;i++) //counts argc
+    {
+      if(line[i] == ' ') //space indicates a new command
+      {
+        if(line[i-1] == ' ') //two spaces in a row is a bad command
+        {
+          printf("An error has occured\n");
+          goto Start;     //ignores bad command and returns to Start:
+        }
+        argc1++;
+      }
+    }
+
+    char *argv1[argc1 + 1];
+    char temp[256];
+    if(chars <= 0) continue;
+    strcpy(temp, line); // keeps original copy safe from strtok
+    argv1[0] = strdup(strtok(temp, del)); //assigns first command
+    argv1[1] = NULL;
+    if(argc1 > 1)
+    {
+      for(int i = 1;i < argc1;i++)     //assigns each additional command
+      {
+        argv1[i] = strdup(strtok(NULL, del));
+        argv1[i + 1] = NULL;
+      }
+    }
+    //At this point, Custom Argc and Argv are functional
+
+    if (chars < 0) //Something went terribly wrong here.
+    {
+      puts("An error has occured\n"); 
+    }
+    else if(strcmp(argv1[0], "exit") == 0) //user input exit command
+    {
+      exit(0);
+    }
+    else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
+    {
+      chdir(argv1[1]);
+    }
+    else //User entered an external command
+    {
+      pid = fork();
+      if(pid == 0)
+      {
+        //child
+        //////////////////////////////////////redirect
+        for(int i = 1;i < argc1;i++)
+        {
+          if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
           {
-            /*
-            switch (argc1)  //This switch is based on how many arguments are enterred into the msh shell.
+            //open file called "entered command". if it doesn't exist, create it.
+            int fd = open(argv1[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
+            if(fd < 0)
             {
-              case (1):
-              execl(cat, argv1[0], NULL);
-              break;
-              case (2): 
-              execl(cat, cat, argv1[1], NULL); //found mulitple argument method on BlackBerry QNX website
-              break;
-              case (3):
-              execl(cat, cat, argv1[1], argv1[2], NULL);
-              break;
-              case (4):
-              execl(cat, cat, argv1[1], argv1[2], argv1[3], NULL);
-              break;
-              case (5):
-              execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], NULL);
-              break;
-              case (6):
-              execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
-              break;
-              default:
-              printf("An error has occured");
-              break;
+              perror("Can't open output file.\n");  //prints error if file can not be created or found
+              exit(0);                    
             }
-            */
-           execv(cat, (char**)argv1);
-           return 0;
-          }
-          else
-          {
-            printf("An error has occured\n");
-            return 0;
+            dup2(fd, 1);
+            close(fd);
+            argv1[i] = NULL; 
+            break;
           }
         }
-        else if(pid > 0)
+        /////////////////////////////////////////
+
+        char cat[40];
+        sprintf(cat, "%s/%s", "/bin/", argv1[0]);
+  
+        if(access(cat, X_OK) == 0) //checks if command exists in Bin. 
         {
-          //parent
-          wait(NULL);
+          /*
+          switch (argc1)  //This switch is based on how many arguments are enterred into the msh shell.
+          {
+            case (1):
+            execl(cat, argv1[0], NULL);
+            break;
+            case (2): 
+            execl(cat, cat, argv1[1], NULL); //found mulitple argument method on BlackBerry QNX website
+            break;
+            case (3):
+            execl(cat, cat, argv1[1], argv1[2], NULL);
+            break;
+            case (4):
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], NULL);
+            break;
+            case (5):
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], NULL);
+            break;
+            case (6):
+            execl(cat, cat, argv1[1], argv1[2], argv1[3], argv1[4], argv1[5], NULL);
+            break;
+            default:
+            printf("An error has occured");
+            break;
+          }
+          */
+        execv(cat, (char**)argv1);
+        return 0;
         }
         else
         {
-          perror("Fork failed.\n");
+          printf("An error has occured\n");
+          return 0;
         }
       }
-    //}
+      else if(pid > 0)
+      {
+        //parent
+        wait(NULL);
+      }
+      else
+      {
+        perror("Fork failed.\n");
+      }
+    }
+      
+    
   }
   return 0;
 }
