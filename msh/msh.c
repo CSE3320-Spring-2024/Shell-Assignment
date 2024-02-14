@@ -124,12 +124,16 @@ int main(int argc, char *argv[])
     }
     else if(strcmp(argv1[0], "exit") == 0) //user input exit command
     {
-      exit(0);
+      if (argc1 > 1)
+        fprintf(stderr, "An error has occurred\n");
+      else
+        exit(0);
     }
     else if(strcmp(argv1[0], "cd") == 0) //user is changing directory
     {
       if(argc1 != 2)
-        printf("An error has occurred");
+        fprintf(stderr, "An error has occurred\n");
+        //printf("An error has occurred");
       else
         chdir(argv1[1]);
     }
@@ -144,17 +148,25 @@ int main(int argc, char *argv[])
         {
           if(strcmp(argv1[i], ">") == 0)  //allows > as a command to pipe result into file
           {
-            //open file called "entered command". if it doesn't exist, create it.
-            int fd = open(argv1[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
-            if(fd < 0)
+            if(argv1[i+1] == NULL)
             {
-              perror("An error has occurred");  //prints error if file can not be created or found
-              exit(0);                    
+              fprintf(stderr, "An error has occurred\n");
+              exit(0);
             }
-            dup2(fd, 1);
-            close(fd);
-            argv1[i] = NULL; 
-            break;
+            else
+            {
+              //open file called "entered command". if it doesn't exist, create it.
+              int fd = open(argv1[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
+              if(fd < 0)
+              {
+              fprintf(stderr, "An error has occurred\n");
+                exit(0);                    
+              }
+              dup2(fd, 1);
+              close(fd);
+              argv1[i] = NULL; 
+              break;
+            }
           }
         }
         /////////////////////////////////////////
@@ -169,7 +181,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-          printf("An error has occurred");
+          fprintf(stderr, "An error has occurred\n");
           return 0;
         }
       }
