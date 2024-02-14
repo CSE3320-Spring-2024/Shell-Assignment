@@ -48,12 +48,14 @@ int main(int argc, char *argv[])
   {
     printf("msh> ");
     chars = getline(&line, &size, stdin); // returned value is length of string + 1 for line break
-    if (chars <= 0)
-    {
-      printf("An error has occurred");
-    }
-    else 
-    {
+    if(chars <= 0) 
+      continue;
+    //if (chars <= 0)
+    //{
+    //  printf("An error has occurred\n");
+    //}
+    //else 
+    //{
       while(chars > 0 && isspace(line[chars - 1])) //Removes extraneous spaces at end of last command
       {
         line[chars - 1] = '\0';
@@ -74,24 +76,26 @@ int main(int argc, char *argv[])
         }
       }
 
-      char argv1[argc1][40];
+      char *argv1[argc1 + 1];
       char temp[256];
+      if(chars <= 0) continue;
       strcpy(temp, line); // keeps original copy safe from strtok
-      strcpy(argv1[0],strtok(temp, del)); //assigns first command
+      argv1[0] = strdup(strtok(temp, del)); //assigns first command
       if(argc1 > 1)
       {
         for(int i = 1;i < argc1;i++)     //assigns each additional command
         {
-          strcpy(argv1[i],strtok(NULL, del));
+          argv1[i] = strdup(strtok(NULL, del));
+          argv1[i + 1] = NULL;
         }
       }
       //At this point, Custom Argc and Argv are functional
 
       if (chars < 0) //Something went terribly wrong here.
       {
-        puts("An error has occured"); 
+        puts("An error has occured\n"); 
       }
-      else if(strcmp(line, "exit") == 0) //user input exit command
+      else if(strcmp(argv1[0], "exit") == 0) //user input exit command
       {
         exit(0);
       }
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
               int fd = open(argv[i + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); 
               if(fd < 0)
               {
-                perror("Can't open output file.");  //prints error if file can not be created or found
+                perror("Can't open output file.\n");  //prints error if file can not be created or found
                 exit(0);                    
               }
               dup2(fd, 1);
@@ -129,6 +133,7 @@ int main(int argc, char *argv[])
     
           if(access(cat, X_OK) == 0) //checks if command exists in Bin. 
           {
+            /*
             switch (argc1)  //This switch is based on how many arguments are enterred into the msh shell.
             {
               case (1):
@@ -153,10 +158,13 @@ int main(int argc, char *argv[])
               printf("An error has occured");
               break;
             }
+            */
+           execv(cat, (char**)argv1);
+           return 0;
           }
           else
           {
-            printf("An error has occured");
+            printf("An error has occured\n");
             return 0;
           }
         }
@@ -167,10 +175,10 @@ int main(int argc, char *argv[])
         }
         else
         {
-          perror("Fork failed.");
+          perror("Fork failed.\n");
         }
       }
-    }
+    //}
   }
   return 0;
 }
