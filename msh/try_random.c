@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 #define WHITESPACE " \t\n"      // We want to split our command line up into tokens
                                 // so we need to define what delimits our tokens.
@@ -19,7 +20,7 @@
 
 #define MAX_NUM_ARGUMENTS 32     
 
-int main()
+int main(int argc, char * argv[])
 {
 
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
@@ -74,7 +75,7 @@ int main()
         if (token_count > 0)
         {
 
-            if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program ------ Completed
+            if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program ------ Completed (So far)
           {
             exit(0);
           }
@@ -102,8 +103,7 @@ int main()
             }
           }
 
-
-           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)
+           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
               pid_t child_pid = fork();         // Fork a child process to execute the command
@@ -128,6 +128,50 @@ int main()
               }
           
           }
+
+
+
+
+   pid_t pid = fork( );
+
+   if( pid == 0 )
+   {
+      // Iterate over the provided command and see if there is a redirect
+      // operator in it.  If there is then open a pipe between 
+      int i;
+      for( i=1; i<argc; i++ )
+      {
+         if( strcmp( argv[i], ">" ) == 0 )
+         {
+            int fd = open( argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+            if( fd < 0 )
+            {
+                perror( "Can't open output file." );
+                exit( 0 );                    
+            }
+            dup2( fd, 1 );
+            close( fd );
+            argv[i] = NULL;            // Trim off the > output part of the command
+         }
+      }
+      execvp( argv[1], &argv[1] );
+   }
+  else if( pid > 0 )
+  {
+    wait( NULL );
+  }
+  else
+  {
+    perror( "Fork failed." );
+  }
+
+
+
+
+
+
+
+
         }
    /*                               /// Print out string tokens
     // Code to print out each individual token
