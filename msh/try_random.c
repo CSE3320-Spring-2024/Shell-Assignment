@@ -67,32 +67,30 @@ int main()
             token_count++;
         }
     }
-    //token[token_count++] = NULL;
+    
 
         //-------------------------------------------------------------------------------------------------------------------------
 
         if (token_count > 0)
         {
 
-          if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program
+            if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program ------ Completed
           {
             exit(0);
           }
  
-          else if (token[0] && strcmp("cd", token[0]) == 0)
+          else if (token[0] && strcmp("cd", token[0]) == 0)      // Chang directory ----- Completed (So far)
           {
             if (token_count == 1)
             {
-              if (chdir("") == -1) 
+              if (chdir("/workspaces/shell-assignment-JoshuaM4818") == -1) 
               {
-                // print error if token failed
-                write(STDERR_FILENO, error_message, strlen(error_message)); 
+                write(STDERR_FILENO, error_message, strlen(error_message));                 // print error if token failed
               }
             }
             else if (token_count != 2) 
-            {
-              // print error if theres more than one arg attached to cd
-              write(STDERR_FILENO, error_message, strlen(error_message));             
+            {     
+              write(STDERR_FILENO, error_message, strlen(error_message));             // print error if theres more than one arg attached to cd
             } 
             else 
             {
@@ -105,31 +103,33 @@ int main()
           }
 
 
-
-
-           else if (token[0] && strcmp("ls", token[0]) == 0)
+           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)
           {
-            pid_t child_pid1 = fork();
-            int status;
-            if(child_pid1 == -1)
-            {
-              write(STDERR_FILENO, error_message, strlen(error_message)); 
-              exit(-1);
-            }
-            else if (child_pid1 == 0)                 // Child process
-            {
-              execl("/bin/ls", "ls", NULL );
-              exit(0);
-            }
-            else                                      // Parent waiting for child 
-            {
-              waitpid(child_pid1, &status, 0 );
-              fflush( NULL );
-            }
-        }  
+              token[token_count++] = NULL;
+              pid_t child_pid = fork();         // Fork a child process to execute the command
+              int status;
+              if (child_pid == -1)              // Checks if child process fails
+              {
+                  write(STDERR_FILENO, error_message, strlen(error_message)); 
+                  exit(0);
+              } 
+              else if (child_pid == 0)  // Child process
+              {
+                  if (execvp("/bin/ls", token) == -1)        
+                  {
+                      write(STDERR_FILENO, error_message, strlen(error_message));
+                      exit(0); // exit with failure status
+                  }
+              }
+              else                              // Parent process waits for child to complete
+              {
+                  waitpid(child_pid, &status, 0 );   
+                  fflush( NULL ); 
+              }
           
+          }
         }
-   /*
+   /*                               /// Print out string tokens
     // Code to print out each individual token
     int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
@@ -141,6 +141,12 @@ int main()
     free( head_ptr );
 
   }
+  /*                            // Free file information 
+    if (input_file) 
+    {
+        fclose(input_file);
+    }
+*/
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
 }
