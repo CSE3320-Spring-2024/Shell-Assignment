@@ -103,6 +103,10 @@ int main(int argc, char * argv[])
             }
           }
 
+
+
+
+
            else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
@@ -121,23 +125,22 @@ int main(int argc, char * argv[])
                       exit(0); // exit with failure status
                   }
               }
-              else                              // Parent process waits for child to complete
+              else if (child_pid > 0)                             // Parent process waits for child to complete
               {
                   waitpid(child_pid, &status, 0 );   
                   fflush( NULL ); 
               }
+              else
+              {
+                write(STDERR_FILENO, error_message, strlen(error_message));
+              }
           
           }
-
-
-
-
-   pid_t pid = fork( );
+// /*
+  // pid_t pid = fork( );
 
    if( pid == 0 )
    {
-      // Iterate over the provided command and see if there is a redirect
-      // operator in it.  If there is then open a pipe between 
       int i;
       for( i=1; i<argc; i++ )
       {
@@ -166,7 +169,7 @@ int main(int argc, char * argv[])
   }
 
 
-
+//  */
 
 
 
