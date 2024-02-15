@@ -34,80 +34,113 @@
 #include <dirent.h>
 #include <fcntl.h>
 
+#define WHITESPACE " \t\n"      // We want to split our command line up into tokens
+                                // so we need to define what delimits our tokens.
+                                // In this case  white space
+                                // will separate the tokens on our command line
+
+#define MAX_COMMAND_SIZE 255    // The maximum command-line size
+
+#define MAX_NUM_ARGUMENTS 5     // Mav shell only supports four arguments
+
+int main()
+{
+
+  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
+
+  while( 1 )
+  {
+    // Print out the msh prompt
+    printf ("msh> ");
+
+    // Read the command from the commandline.  The
+    // maximum command that will be read is MAX_COMMAND_SIZE
+    // This while command will wait here until the user
+    // inputs something since fgets returns NULL when there
+    // is no input
+    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+
+    /* Parse input */
+    char *token[MAX_NUM_ARGUMENTS];
+
+    int   token_count = 0;                                 
+                                                           
+    // Pointer to point to the token
+    // parsed by strsep
+    char *argument_ptr;                                         
+                                                           
+    char *working_string  = strdup( command_string );                
+
+    // we are going to move the working_string pointer so
+    // keep track of its original value so we can deallocate
+    // the correct amount at the end
+    char *head_ptr = working_string;
+
+    // Tokenize the input strings with whitespace used as the delimiter
+    while ( ( (argument_ptr = strsep(&working_string, WHITESPACE ) ) != NULL) && 
+              (token_count<MAX_NUM_ARGUMENTS))
+    {
+      token[token_count] = strndup( argument_ptr, MAX_COMMAND_SIZE );
+      if( strlen( token[token_count] ) == 0 )
+      {
+        token[token_count] = NULL;
+      }
+        token_count++;
+    }
+
+    // Now print the tokenized input as a debug check
+    // \TODO Remove this code and replace with your shell functionality
+
+    int token_index  = 0;
+    for( token_index = 0; token_index < token_count; token_index ++ ) 
+    {
+      printf("token[%d] = %s\n", token_index, token[token_index] );  
+    }
+
+    free( head_ptr );
+
+  }
+  return 0;
+  // e2520ca2-76f3-90d6-0242ac120003
+}
+
+
+
+
 // void process_command(char* command_str);
 
-int main( int argc, char * argv[] )
-{
+// int main() 
+// {
+//   char   file_line[256];
+//   char   str[255]; 
+//   int    first_int;
+//   int    second_int;
+//   float  first_float;
+
+//   FILE * file;
+
+//   file = fopen( "sample.txt" , "r");
+
+//   if (file) 
+//   {
+//     // Use fscanf to parse each line of the file into variables.  
+//     while (fscanf(file, "%f %s %d %d", &first_float, &str[0], &first_int, &second_int )!=EOF)
+//     {
+//       // Print out what we've parsed
+//       printf("Parsed: %f %s %d %d\n", first_float, str, first_int, second_int );
+//     }
+
+//     fclose(file);
+//   }
+
+//   return 0;
+// }
+
+
 
   //char *command_str = ()
 
 
 // if ( == "exit") {}
 
-
-
-   pid_t pid = fork( );
-
-   if( pid == 0 )
-   {
-      // Iterate over the provided command and see if there is a redirect
-      // operator in it.  If there is then open a pipe between 
-      int i;
-      for( i=1; i<argc; i++ )
-      {
-         if( token[0] && strcmp( argv[i], ">" ) == 0 )
-         {
-            int fd = open( argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
-            if( fd < 0 )
-            {
-                perror( "Can't open output file." );
-                exit( 0 );                    
-            }
-            dup2( fd, 1 );
-            close( fd );
-            
-            // Trim off the > output part of the command
-            argv[i] = NULL;
-         }
-      }
-      execvp( argv[1], &argv[1] );
-   }
-  else if( pid > 0 )
-  {
-    wait( NULL );
-  }
-  else
-  {
-    perror( "Fork failed." );
-  }
-
-//REDIRECTION OUTPUT - forks then string compares. parent just waits
-  // pid_t pid = fork(); 
-
-  // if (pid == 0){
-
-  //   if (token[0] && strcmp (token[0], ">") == 0) {
-  //     printf("Found one\n");
-  //   else {
-  //     printf("Didn't find one\n");
-  //   }
-
-  //   printf("Done searching\n");
-    
-  //   }
-
-  //   else 
-  //   {
-  //     int status;
-  //     wait (&status);
-
-
-  //   }
-
-  // }
-
-
-
-  return 0;
-}
 
