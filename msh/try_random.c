@@ -112,7 +112,40 @@ int main(int argc, char * argv[])
               token[token_count++] = NULL;
               pid_t child_pid = fork();         // Fork a child process to execute the command
               int status;
-              if (child_pid == -1)              // Checks if child process fails
+              
+              if ( argv[1] != NULL) 
+              {
+                  if( child_pid == 0 )
+                  {
+                      int i;
+                      for( i=1; i<argc; i++ )
+                      {
+                          if( strcmp( argv[i], ">" ) == 0 )
+                          {
+                              int fd = open( argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                              if( fd < 0 )
+                              {
+                                  perror( "Can't open output file." );
+                                  exit( 0 );                    
+                              }
+                              dup2( fd, 1 );
+                              close( fd );
+                              argv[i] = NULL;            // Trim off the > output part of the command
+                          }
+                      }
+                      execvp( argv[1], &argv[1] );
+                  }
+                  else if ( child_pid > 0 )
+                  {
+                    wait( NULL );
+                  }
+                  else
+                  {
+                      write(STDERR_FILENO, error_message, strlen(error_message)); 
+                  }
+              }
+              
+              else if (child_pid == -1)              // Checks if child process fails
               {
                   write(STDERR_FILENO, error_message, strlen(error_message)); 
                   exit(0);
@@ -135,44 +168,15 @@ int main(int argc, char * argv[])
                 write(STDERR_FILENO, error_message, strlen(error_message));
               }
           
+
+
+
+
           }
 // /*
   // pid_t pid = fork( );
 
-   if( pid == 0 )
-   {
-      int i;
-      for( i=1; i<argc; i++ )
-      {
-         if( strcmp( argv[i], ">" ) == 0 )
-         {
-            int fd = open( argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
-            if( fd < 0 )
-            {
-                perror( "Can't open output file." );
-                exit( 0 );                    
-            }
-            dup2( fd, 1 );
-            close( fd );
-            argv[i] = NULL;            // Trim off the > output part of the command
-         }
-      }
-      execvp( argv[1], &argv[1] );
-   }
-  else if( pid > 0 )
-  {
-    wait( NULL );
-  }
-  else
-  {
-    perror( "Fork failed." );
-  }
-
-
-//  */
-
-
-
+ //  */
 
 
         }
@@ -187,7 +191,7 @@ int main(int argc, char * argv[])
 */
     free( head_ptr );
 
-  }
+  }                              // while bracket
   /*                            // Free file information 
     if (input_file) 
     {
