@@ -20,7 +20,7 @@
 
 #define MAX_NUM_ARGUMENTS 32     
 
-int main(int argc, char * argv[])
+int main()
 {
 
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
@@ -41,6 +41,7 @@ int main(int argc, char * argv[])
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
+    char *token_2[MAX_NUM_ARGUMENTS];
 
     int token_count = 0;                                 
                                                            
@@ -104,34 +105,16 @@ int main(int argc, char * argv[])
           }
 
 
-           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
+          else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
-
               pid_t child_pid = fork();         // Fork a child process to execute the command
               int status;
-            
-              if( child_pid == 0 )
+              if (child_pid == -1)              // Checks if child process fails
               {
-                  int i;
-                  for( i=1; i<token_count; i++ )
-                  {
-                          if( strcmp( token[i], ">" ) == 0 )
-                          {
-                              int fd = open( token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
-                              if( fd < 0 )
-                              {
-                                  perror( "Can't open output file." );
-                                  exit( 0 );                    
-                              }
-                              dup2( fd, 1 );
-                              close( fd );
-                              token[i] = NULL;            // Trim off the > output part of the command
-                          }
-                      }
-                      execvp( token[1], &token[1] );
-                  }
-              
+                  write(STDERR_FILENO, error_message, strlen(error_message)); 
+                  exit(0);
+              } 
               else if (child_pid == 0)  // Child process
               {
                   if (execvp("/bin/ls", token) == -1)        
@@ -140,28 +123,19 @@ int main(int argc, char * argv[])
                       exit(0); // exit with failure status
                   }
               }
-
-
-
-              else if (child_pid > 0)          // Parent process waits for child to complete
+              else if (child_pid > 0)                             // Parent process waits for child to complete
               {
                   waitpid(child_pid, &status, 0 );   
                   fflush( NULL ); 
               }
-              
-              else                            // final fail of the if - else 
+              else
               {
                 write(STDERR_FILENO, error_message, strlen(error_message));
-                exit(0);
               }
 
+
+
           }
-// /*
-  // pid_t pid = fork( );
-
- //  */
-
-
         }
    /*                               /// Print out string tokens
     // Code to print out each individual token
@@ -184,3 +158,102 @@ int main(int argc, char * argv[])
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
 }
+
+
+
+
+
+/*
+
+              else if( child_pid == 0 )
+              {
+                
+                  int i;
+                  int j = 0;  
+                  int redirect_found = 0;
+                  for( i = 0; i < token_count; i++ )            // if ls -l > output ------->        token0 = ls        token1 = -l       token2 = >      token3 = output      token4 = NULL
+                  {       
+                      if( strcmp( token[i], ">" ) == 0 )
+                      {
+                          redirect_found = 1;
+                      }
+                      else
+                      {
+                          token_2[j] = token[i];
+                          j++;
+                      }
+                  }
+
+
+                     printf("\n%d\n", token_count);
+
+
+
+                 if (redirect_found == 1 )
+                  {
+                             int fd = open( token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                              if( fd < 0 )
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit( 0 );                    
+                              }
+                              dup2( fd, 1 );
+                              close( fd );
+                           token[i] = NULL;            // Trim off the > output part of the command
+  
+   //               }
+  //                else
+ //                 {
+  
+                    execv("/bin/ls", token_2);
+ //                 }
+*/
+
+
+
+
+/*
+
+
+              token[token_count++] = NULL;
+
+              pid_t pid = fork( );
+              int status;
+              if( pid == 0 )
+              {
+                  int i;
+                  for( i=0; i<token_count; i++ )
+                  {
+                      if( strcmp( token[i], ">" ) == 0 )
+                      {
+                          int fd = open( token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                          if( fd < 0 )
+                          {
+                              perror( "Can't open output file." );
+                              exit( 0 );                    
+                          }
+                          dup2( fd, 1 );
+                          close( fd );
+                          token[i] = NULL;
+                      }
+                    }
+                    execv( token[0], &token[0] );
+                }
+
+              else if (pid > 0)          // Parent process waits for child to complete
+              {
+                  waitpid(pid, &status, 0 );   
+                  fflush( NULL ); 
+              }
+            
+              else                            // final fail of the if - else 
+              {
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(0);
+              }
+
+         
+
+
+
+*/
