@@ -104,25 +104,21 @@ int main(int argc, char * argv[])
           }
 
 
-
-
-
            else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
+
               pid_t child_pid = fork();         // Fork a child process to execute the command
               int status;
-              
-              if ( argv[1] != NULL) 
+            
+              if( child_pid == 0 )
               {
-                  if( child_pid == 0 )
+                  int i;
+                  for( i=1; i<token_count; i++ )
                   {
-                      int i;
-                      for( i=1; i<argc; i++ )
-                      {
-                          if( strcmp( argv[i], ">" ) == 0 )
+                          if( strcmp( token[i], ">" ) == 0 )
                           {
-                              int fd = open( argv[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                              int fd = open( token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
                               if( fd < 0 )
                               {
                                   perror( "Can't open output file." );
@@ -130,26 +126,12 @@ int main(int argc, char * argv[])
                               }
                               dup2( fd, 1 );
                               close( fd );
-                              argv[i] = NULL;            // Trim off the > output part of the command
+                              token[i] = NULL;            // Trim off the > output part of the command
                           }
                       }
-                      execvp( argv[1], &argv[1] );
+                      execvp( token[1], &token[1] );
                   }
-                  else if ( child_pid > 0 )
-                  {
-                    wait( NULL );
-                  }
-                  else
-                  {
-                      write(STDERR_FILENO, error_message, strlen(error_message)); 
-                  }
-              }
               
-              else if (child_pid == -1)              // Checks if child process fails
-              {
-                  write(STDERR_FILENO, error_message, strlen(error_message)); 
-                  exit(0);
-              } 
               else if (child_pid == 0)  // Child process
               {
                   if (execvp("/bin/ls", token) == -1)        
@@ -158,19 +140,20 @@ int main(int argc, char * argv[])
                       exit(0); // exit with failure status
                   }
               }
-              else if (child_pid > 0)                             // Parent process waits for child to complete
+
+
+
+              else if (child_pid > 0)          // Parent process waits for child to complete
               {
                   waitpid(child_pid, &status, 0 );   
                   fflush( NULL ); 
               }
-              else
+              
+              else                            // final fail of the if - else 
               {
                 write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(0);
               }
-          
-
-
-
 
           }
 // /*
