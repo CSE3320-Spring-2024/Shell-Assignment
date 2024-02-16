@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -43,6 +44,8 @@ int main( int argc, char * argv[] )
 {
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
   char error_message[30] = "An error has occurred\n";
+  FILE *input_file = stdin;
+
 
   while( 1 )
   {
@@ -55,6 +58,7 @@ int main( int argc, char * argv[] )
     // inputs something.
     while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
     command_string[strcspn(command_string, "\n")] = 0;
+   
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
@@ -77,11 +81,12 @@ int main( int argc, char * argv[] )
 
     if(token_count == 0)
     {
-      free(head_ptr);
-      continue; //if no command skip to next iteration
+            free(head_ptr);
+            continue;
     }
 
-    if(token[0] && strcmp(token[0], "exit") == 0)
+        // Handle exit command
+    if(strcmp(token[0], "exit") == 0)
     {
       if(token_count > 1)
       {
@@ -89,16 +94,23 @@ int main( int argc, char * argv[] )
       }
       else
       {
-      free(command_string);
-      free(head_ptr);
-      exit(0);
+        free(command_string);
+        free(head_ptr);
+        exit(0);
       }
     }
-    else if(token[0] && strcmp(token[0], "cd") == 0)
+
+        // Handle cd command
+    else if(strcmp(token[0], "cd") == 0)
     {
       if(token_count == 2)
       {
-        if(chdir(token[1]) != 0)
+        if(chdir(token[1]) == 0)
+        {
+          free(head_ptr); // Directory changed successfully, free head_ptr
+          continue; // Skip the rest of the while loop
+        } 
+        else
         {
           write(STDERR_FILENO, error_message, strlen(error_message));
         }
@@ -107,35 +119,44 @@ int main( int argc, char * argv[] )
       {
         printf("usage: cd directory\n");
       }
-    }
-    else
-    {
-      pid_t pid = fork();
-      if(pid == 0)
-      { // Child process
-        // Attempt to execute the command
-        if(execvp(token[0], token) == -1)
-        {
+      free(head_ptr); // Free head_ptr 
+      continue; // Continue to the next iteration of the while loop
+      }
+
+        // Handle other commands
+       pid_t pid = fork();
+        if (pid == 0) { // Child process
+            int fd;
+            for (int i = 0; i < token_count; i++) {
+                if (strcmp(token[i], ">") == 0 || strcmp(token[i], "<") == 0) {
+                    fd = strcmp(token[i], ">") == 0 ? open(token[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR) : open(token[i + 1], O_RDONLY);
+                    if (fd < 0) {
+                        write(STDERR_FILENO, error_message, strlen(error_message));
+                        exit(EXIT_FAILURE);
+                    }
+                    dup2(fd, strcmp(token[i], ">") == 0 ? STDOUT_FILENO : STDIN_FILENO);
+                    close(fd);
+                    token[i] = NULL; // Nullify the redirection symbol for execvp
+                    break;
+                }
+            }
+            execvp(token[0], token);
             write(STDERR_FILENO, error_message, strlen(error_message));
-            exit(EXIT_FAILURE); // Ensure to exit the child process if exec fails
+            perror("execvp error");
+            exit(EXIT_FAILURE);
+        } else if (pid > 0) { // Parent process
+            int status;
+            waitpid(pid, &status, 0);
+        } else { // Handle fork failure
+            write(STDERR_FILENO, error_message, strlen(error_message));
         }
-      } 
-      else if(pid > 0)
-      {   // Wait for the child process to finish
-        int status;
-        waitpid(pid, &status, 0);
-      }
-      else
-      {  
-        // Fork failed
-        write(STDERR_FILENO, error_message, strlen(error_message));
-      }
-    }
-
-    free( head_ptr );
-
+  free(head_ptr);
   }
 
+  free(command_string);
+  if (input_file != stdin)
+  {
+        fclose(input_file); // Close the batch file
+  }
   return 0;
 }
-
