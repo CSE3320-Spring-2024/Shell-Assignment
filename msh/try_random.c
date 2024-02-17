@@ -69,13 +69,32 @@ int main()
             token_count++;
         }
     }
-    
+            
+              int i;
+              int location_num;
+              int j = 0;  
+              int redirect_found = 0;
+              for( i = 0; i < token_count; i++ )            // if ls -l > output ------->        token0 = ls        token1 = -l       token2 = >      token3 = output 
+              {       
+                  if( strcmp( token[i], ">" ) == 0 )        // copy in token_2 ---------<        token2_0 = ls      token2_1 = -l    
+                  {
+                      redirect_found = 1;
+                      location_num = i; 
+                  }
+                  else
+                  {
+                      token_2[j] = token[i];
+                      j++;
+                  }
+              }
+              token_2[j] =  NULL;
+
 
         //-------------------------------------------------------------------------------------------------------------------------
 
         if (token_count > 0)
         {
-
+        
             if (token[0] && strcmp("exit", token[0]) == 0)        // if exit, close the program ------ Completed (So far)
           {
             exit(0);
@@ -105,24 +124,44 @@ int main()
           }
 
 
+
           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
-              pid_t child_pid = fork();         // Fork a child process to execute the command
               int status;
-              if (child_pid == -1)              // Checks if child process fails
+
+              pid_t child_pid = fork();         // Fork a child process to execute the command
+      
+              if( child_pid == 0 )
               {
-                  write(STDERR_FILENO, error_message, strlen(error_message)); 
-                  exit(0);
-              } 
-              else if (child_pid == 0)  // Child process
-              {
-                  if (execvp("/bin/ls", token) == -1)        
+                  if (redirect_found == 1 )
                   {
-                      write(STDERR_FILENO, error_message, strlen(error_message));
-                      exit(0); // exit with failure status
+                      int fd = open( token[location_num + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                      if( fd < 0 )
+                      {
+                          write(STDERR_FILENO, error_message, strlen(error_message));
+                          exit( 0 );                    
+                      }
+                      dup2( fd, 1 );
+
+                      if (execv("/bin/ls", token_2) == -1)
+                      { 
+                          write(STDERR_FILENO, error_message, strlen(error_message));
+                          exit(0);
+                      }
+                      
+                      close( fd );  
+                  }
+                  else
+                  {
+                      if (execv("/bin/ls", token_2) == -1)
+                      {
+                          write(STDERR_FILENO, error_message, strlen(error_message));
+                          exit(0);
+                      }
                   }
               }
+
               else if (child_pid > 0)                             // Parent process waits for child to complete
               {
                   waitpid(child_pid, &status, 0 );   
@@ -131,12 +170,11 @@ int main()
               else
               {
                 write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(0);
               }
-
-
-
           }
         }
+  
    /*                               /// Print out string tokens
     // Code to print out each individual token
     int token_index  = 0;
@@ -162,54 +200,16 @@ int main()
 
 
 
-
 /*
-
-              else if( child_pid == 0 )
+              if (child_pid == 0)  // Child process
               {
-                
-                  int i;
-                  int j = 0;  
-                  int redirect_found = 0;
-                  for( i = 0; i < token_count; i++ )            // if ls -l > output ------->        token0 = ls        token1 = -l       token2 = >      token3 = output      token4 = NULL
-                  {       
-                      if( strcmp( token[i], ">" ) == 0 )
-                      {
-                          redirect_found = 1;
-                      }
-                      else
-                      {
-                          token_2[j] = token[i];
-                          j++;
-                      }
-                  }
-
-
-                     printf("\n%d\n", token_count);
-
-
-
-                 if (redirect_found == 1 )
+                  if (execvp("/bin/ls", token) == -1)        
                   {
-                             int fd = open( token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
-                              if( fd < 0 )
-                              {
-                                  write(STDERR_FILENO, error_message, strlen(error_message));
-                                  exit( 0 );                    
-                              }
-                              dup2( fd, 1 );
-                              close( fd );
-                           token[i] = NULL;            // Trim off the > output part of the command
-  
-   //               }
-  //                else
- //                 {
-  
-                    execv("/bin/ls", token_2);
- //                 }
+                      write(STDERR_FILENO, error_message, strlen(error_message));
+                      exit(0); // exit with failure status
+                  }
+              }
 */
-
-
 
 
 /*
