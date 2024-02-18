@@ -1,0 +1,14 @@
+-rw-------  1 codespace codespace   11 Feb 18 06:48 outbreak75
+
+/tmp:
+total 20
+drwxr-xrw-+ 2 codespace codespace 4096 Feb 18 05:06 codespaces_logs
+-rw-r--rw-  1 root      root      9281 Feb 18 05:06 dockerd.log
+-rw-r--rw-  1 root      root        57 Feb 18 05:06 sshd.log
+srwxr-xr--  1 codespace codespace    0 Feb 18 05:06 vscode-git-92a4d356ed.sock
+srwxr-xr--  1 codespace codespace    0 Feb 18 05:06 vscode-ipc-51e740ee-0b93-4654-9b53-ae96aceff744.sock
+srwxr-xr--  1 codespace codespace    0 Feb 18 06:47 vscode-ipc-caa9db39-c50b-4345-8139-1feb848acf5f.sock
+
+/tmp/codespaces_logs:
+total 928
+-rw-r--rw- 1 codespace codespace 947525 Feb 18 06:48 20240218_050644_17082328048630_VSCode.log

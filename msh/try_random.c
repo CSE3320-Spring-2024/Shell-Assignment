@@ -20,76 +20,109 @@
 
 #define MAX_NUM_ARGUMENTS 32     
 
-int main()
+int main(int argc, char *argv[])
 {
 
+  FILE *batch_file;    /// CHANGE TO FP LATER!!!!!!!
+  int batch_found = 0;
+  
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
 
+  char *head_ptr;
+
   // error message to print 
-  char error_message[30] = "An error has occurred\n";         
+  char error_message[30] = "An error has occurred\n";   
+
+    if (argc == 2)
+    {
+        batch_file = fopen(argv[1], "r");
+        if (batch_file == NULL)
+        {
+            char error_message[30] = "An error has occurred\n";
+            exit(0);
+        }
+        batch_found = 1;
+    }
+    else if (argc > 2)
+    {
+        char error_message[30] = "An error has occurred\n";
+        exit(0);
+    }
 
   while( 1 )
   {
-    // Print out the msh prompt
-    printf ("msh> ");
+      int i = 0;
+      int j = 0;  
+      int location_num = 0;
+      int redirect_found = 0;
 
-    // Read the command from the commandi line.  The
-    // maximum command that will be read is MAX_COMMAND_SIZE
-    // This while command will wait here until the user
-    // inputs something.
-    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+          /* Parse input */
+          char *token[MAX_NUM_ARGUMENTS];
+          char *token_2[MAX_NUM_ARGUMENTS];
 
-    /* Parse input */
-    char *token[MAX_NUM_ARGUMENTS];
-    char *token_2[MAX_NUM_ARGUMENTS];
+          int token_count = 0;   
 
-    int token_count = 0;                                 
-                                                           
-    // Pointer to point to the token
-    // parsed by strsep
-    char *argument_pointer;                                         
-                                                           
-    char *working_string  = strdup( command_string );                
+          // Pointer to point to the token
+          // parsed by strsep
+          char *argument_pointer;
 
-    // we are going to move the working_string pointer so
-    // keep track of its original value so we can deallocate
-    // the correct amount at the end
-    
-    char *head_ptr = working_string;
-    
-    // Tokenize the input with(out) whitespace used as the delimiter
 
-    while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
-              (token_count<MAX_NUM_ARGUMENTS))
+    if (batch_found == 1)
     {
-        // grabs only the non-zero values, tokenizes each command seperately
-        if (strlen(argument_pointer) > 0)                                                 
-        {
-            token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
-            token_count++;
-        }
+            if (fgets(command_string, MAX_COMMAND_SIZE, batch_file) == NULL)
+            {
+                fclose(batch_file);
+                exit(0);
+            }
     }
-            
-              int i;
-              int location_num;
-              int j = 0;  
-              int redirect_found = 0;
+    
+    else
+    {
+      printf ("msh> ");    // Print out the msh prompt
+
+          // Read the command from the command line.  The
+          // maximum command that will be read is MAX_COMMAND_SIZE
+          // This while command will wait here until the user
+          // inputs something.
+          while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );                                      
+                                                                
+    }
+          char *working_string  = strdup( command_string );                
+
+          // we are going to move the working_string pointer so
+          // keep track of its original value so we can deallocate
+          // the correct amount at the end
+          
+          char *head_ptr = working_string;
+          
+          // Tokenize the input with(out) whitespace used as the delimiter
+
+          while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
+                    (token_count<MAX_NUM_ARGUMENTS))
+          {
+              // grabs only the non-zero values, tokenizes each command seperately
+              if (strlen(argument_pointer) > 0)                                                 
+              {
+                  token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
+                  token_count++;
+              }
+          }
+                  
               for( i = 0; i < token_count; i++ )            // if ls -l > output ------->        token0 = ls        token1 = -l       token2 = >      token3 = output 
               {       
-                  if( strcmp( token[i], ">" ) == 0 )        // copy in token_2 ---------<        token2_0 = ls      token2_1 = -l    
-                  {
-                      redirect_found = 1;
-                      location_num = i; 
-                  }
-                  else
-                  {
-                      token_2[j] = token[i];
-                      j++;
-                  }
+                if( strcmp( token[i], ">" ) == 0 )        // copy in token_2 ---------<        token2_0 = ls      token2_1 = -l    
+                {
+                    redirect_found = 1;
+                    location_num = i; 
+                }
+                else
+                {
+                    token_2[j] = token[i];
+                    j++;
+                }
               }
               token_2[j] =  NULL;
-
-
+ 
         //-------------------------------------------------------------------------------------------------------------------------
 
         if (token_count > 0)
@@ -122,8 +155,6 @@ int main()
               }
             }
           }
-
-
 
           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
@@ -184,15 +215,17 @@ int main()
     }
 
 */
-    free( head_ptr );
+          free( head_ptr );
+
+
 
   }                              // while bracket
-  /*                            // Free file information 
-    if (input_file) 
+                            // Free file information 
+    if (batch_file != NULL) 
     {
-        fclose(input_file);
+        fclose(batch_file);
     }
-*/
+
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
 }
