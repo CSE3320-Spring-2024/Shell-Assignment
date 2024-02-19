@@ -40,123 +40,180 @@
 
 #define MAX_NUM_ARGUMENTS 32
 
-int main( int argc, char * argv[] )
+int main(int argc, char *argv[])
 {
-  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
+  FILE *input_stream = stdin;
+  char *command_string = (char*) malloc(MAX_COMMAND_SIZE);
   char error_message[30] = "An error has occurred\n";
-  FILE *input_file = stdin;
 
+  if(argc == 2) {
+        // Attempt to open the file for reading if an argument is provided
+        input_stream = fopen(argv[1], "r");
+        if(input_stream == NULL) {
+            fprintf(stderr, "%s: File not found\n", argv[1]);
+            free(command_string);
+            exit(0);
+        }
+    }
 
-  while( 1 )
+  while(1)
   {
-    // Print out the msh prompt
-    printf ("msh> ");
+    if (input_stream == stdin)
+    {
+        printf("msh> ");
+    }
 
-    // Read the command from the commandi line.  The
-    // maximum command that will be read is MAX_COMMAND_SIZE
-    // This while command will wait here until the user
-    // inputs something.
-    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
+    if(fgets(command_string, MAX_COMMAND_SIZE, input_stream) == NULL)
+    {
+        if (feof(input_stream))
+        {
+            // End of file reached or no more input from stdin
+            break;
+        }
+        else if(ferror(input_stream))
+        {
+            // Error reading from input_stream
+            write(STDERR_FILENO, error_message, strlen(error_message));
+            break;
+        }
+    }
+
     command_string[strcspn(command_string, "\n")] = 0;
-   
-
-    /* Parse input */
+    
     char *token[MAX_NUM_ARGUMENTS];
     int token_count = 0;                                 
-    char *argument_pointer;      // Pointer to point to the token                                                                                             
-    char *working_string  = strdup( command_string );  // parsed by strsep          
-    char *head_ptr = working_string; //free this pointer later
-    
-    // Tokenize the input with whitespace used as the delimiter
-    while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
-              (token_count<MAX_NUM_ARGUMENTS))
-    {
-      token[token_count] = strndup( argument_pointer, MAX_COMMAND_SIZE );
-      if( strlen( token[token_count] ) == 0 )
-      {
-        token[token_count] = NULL;
-      }
-        token_count++;
-    }
+    char *argument_pointer;                                          
+    char *working_string = strdup(command_string);
+    char *head_ptr = working_string;
 
-    if(token_count == 0)
-    {
-            free(head_ptr);
-            continue;
-    }
 
-        // Handle exit command
-    if(strcmp(token[0], "exit") == 0)
+    while(((argument_pointer = strsep(&working_string, WHITESPACE)) != NULL) && (token_count < MAX_NUM_ARGUMENTS))
     {
-      if(token_count > 1)
+      if(strlen(argument_pointer) > 0)
       {
-        write(STDERR_FILENO, error_message, strlen(error_message));
-      }
-      else
-      {
-        free(command_string);
-        free(head_ptr);
-        exit(0);
-      }
-    }
-
-        // Handle cd command
-    else if(strcmp(token[0], "cd") == 0)
-    {
-      if(token_count == 2)
-      {
-        if(chdir(token[1]) == 0)
+        token[token_count] = strndup(argument_pointer, MAX_COMMAND_SIZE);
+        if(token[token_count] == NULL)
         {
-          free(head_ptr); // Directory changed successfully, free head_ptr
-          continue; // Skip the rest of the while loop
-        } 
-        else
+          for(int i = 0; i < token_count; i++)
+          {
+            free(token[i]);
+          }
+            break;  // Break out of the while loop
+          }
+            token_count++;
+          }
+      }
+      if(token_count == 0)
+      {
+        free(head_ptr);
+        continue;
+      }
+
+      token[token_count] = NULL;  //NULL-terminate token array
+
+      if(strcmp(token[0], "exit") == 0)
+      {
+        if(token_count > 1)
         {
           write(STDERR_FILENO, error_message, strlen(error_message));
         }
+        else
+        {
+          break;  // Break out of the while loop
+        }
+      }
+      else if(strcmp(token[0], "cd") == 0)
+      {
+        if(token_count > 2)
+        {
+          // If more than one argument is provided to `cd`, print an error.
+          write(STDERR_FILENO, error_message, strlen(error_message));
+          break;
+        }
+        else if(token_count == 2)
+        {
+          // Attempt to change directory to the specified path.
+          if(chdir(token[1]) != 0)
+          {
+            // If changing directory fails, print an error.
+            write(STDERR_FILENO, error_message, strlen(error_message));
+            break;
+          }
+        }
+        else
+        {
+          // If `cd` is called without arguments, change to the HOME directory.
+          const char* homeDir = getenv("HOME");
+          if(homeDir != NULL)
+          {
+            if(chdir(homeDir) != 0)
+            {
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                break;
+            }
+          }
+        }
       }
       else
       {
-        printf("usage: cd directory\n");
-      }
-      free(head_ptr); // Free head_ptr 
-      continue; // Continue to the next iteration of the while loop
-      }
-
-        // Handle other commands
-       pid_t pid = fork();
-        if (pid == 0) { // Child process
-            int fd;
-            for (int i = 0; i < token_count; i++) {
-                if (strcmp(token[i], ">") == 0 || strcmp(token[i], "<") == 0) {
-                    fd = strcmp(token[i], ">") == 0 ? open(token[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR) : open(token[i + 1], O_RDONLY);
-                    if (fd < 0) {
-                        write(STDERR_FILENO, error_message, strlen(error_message));
-                        exit(EXIT_FAILURE);
-                    }
-                    dup2(fd, strcmp(token[i], ">") == 0 ? STDOUT_FILENO : STDIN_FILENO);
-                    close(fd);
-                    token[i] = NULL; // Nullify the redirection symbol for execvp
-                    break;
-                }
+        pid_t pid = fork();
+        if(pid == 0)
+        {
+          // Child process
+          int redirectIndex = -1;
+          for(int i = 0; i < token_count; i++)
+          {
+            if (token[i] && strcmp(token[i], ">") == 0)
+            {
+              redirectIndex = i;
+              break;
             }
-            execvp(token[0], token);
-            write(STDERR_FILENO, error_message, strlen(error_message));
-            perror("execvp error");
-            exit(EXIT_FAILURE);
-        } else if (pid > 0) { // Parent process
-            int status;
-            waitpid(pid, &status, 0);
-        } else { // Handle fork failure
-            write(STDERR_FILENO, error_message, strlen(error_message));
-        }
-  free(head_ptr);
-  }
+          }
 
-  free(command_string);
-  if (input_file != stdin)
-  {
-        fclose(input_file); // Close the batch file
+          if(redirectIndex != -1)
+          {
+            if (token[redirectIndex + 1] != NULL)
+            {
+              int fd = open(token[redirectIndex + 1], O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+              if(fd < 0)
+              {
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(1);
+              }
+              dup2(fd, STDOUT_FILENO);
+              dup2(fd, STDERR_FILENO);
+              close(fd);
+              token[redirectIndex] = NULL;  // Terminate command before the redirection symbol
+            }
+            }
+
+          if(execvp(token[0], token) == -1)
+          {
+            perror("execvp"); // This provides an error specific to execvp's failure
+            exit(EXIT_FAILURE);
+          }
+          }
+          else if (pid > 0)
+          {
+            // Parent process: wait for the child to complete
+            wait(NULL);
+          }
+          else
+          {
+            // Fork failed
+            perror("fork error");
+            break;
+          }
+      }
+      free(head_ptr);
+      for (int i = 0; i < token_count; i++)
+      {
+        free(token[i]);
+      }
+      if (input_stream != stdin) {
+        fclose(input_stream); // Close the file if it was opened
+    }
   }
+  free(command_string);
   return 0;
 }
