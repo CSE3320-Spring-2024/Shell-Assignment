@@ -46,18 +46,21 @@ int main(int argc, char *argv[])
   char *command_string = (char*) malloc(MAX_COMMAND_SIZE);
   char error_message[30] = "An error has occurred\n";
 
-  if(argc == 2) {
+  if(argc > 1)
+  {
         // Attempt to open the file for reading if an argument is provided
         input_stream = fopen(argv[1], "r");
-        if(input_stream == NULL) {
-            fprintf(stderr, "%s: File not found\n", argv[1]);
-            free(command_string);
-            exit(0);
+        if(input_stream == NULL)
+        {
+          fprintf(stderr, "%s: File not found\n", argv[1]);
+          free(command_string);
+          exit(0);
         }
-    }
+  }
 
   while(1)
   {
+    
     if (input_stream == stdin)
     {
         printf("msh> ");
@@ -65,10 +68,12 @@ int main(int argc, char *argv[])
 
     if(fgets(command_string, MAX_COMMAND_SIZE, input_stream) == NULL)
     {
-        if (feof(input_stream))
+        if(feof(input_stream) && input_stream != stdin  input_steam == stdin)
         {
-            // End of file reached or no more input from stdin
-            break;
+          fclose(input_stream);// End of file reached or no more input from stdin
+          free(command_string);
+          exit(0);
+          break;
         }
         else if(ferror(input_stream))
         {
@@ -210,9 +215,10 @@ int main(int argc, char *argv[])
       {
         free(token[i]);
       }
-      if (input_stream != stdin) {
+      if(input_stream != stdin)
+      {
         fclose(input_stream); // Close the file if it was opened
-    }
+      }
   }
   free(command_string);
   return 0;
