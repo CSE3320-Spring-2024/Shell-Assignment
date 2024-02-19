@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
   if(argc > 1)
   {
-        // Attempt to open the file for reading if an argument is provided
+        //open the file and read arg
         input_stream = fopen(argv[1], "r");
         if(input_stream == NULL)
         {
@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
 
     if(fgets(command_string, MAX_COMMAND_SIZE, input_stream) == NULL)
     {
-        if(feof(input_stream) && input_stream != stdin  input_steam == stdin)
+        if(feof(input_stream) && input_stream != stdin)
         {
-          fclose(input_stream);// End of file reached or no more input from stdin
+          fclose(input_stream);// End of file
           free(command_string);
           exit(0);
           break;
@@ -131,23 +131,23 @@ int main(int argc, char *argv[])
       {
         if(token_count > 2)
         {
-          // If more than one argument is provided to `cd`, print an error.
+          // If more than one arg print erro
           write(STDERR_FILENO, error_message, strlen(error_message));
           break;
         }
         else if(token_count == 2)
         {
-          // Attempt to change directory to the specified path.
+          // Attempt to change directory
           if(chdir(token[1]) != 0)
           {
-            // If changing directory fails, print an error.
+            // If changing directory fails error
             write(STDERR_FILENO, error_message, strlen(error_message));
             break;
           }
         }
         else
         {
-          // If `cd` is called without arguments, change to the HOME directory.
+          // cd no arg change to the HOME directory.
           const char* homeDir = getenv("HOME");
           if(homeDir != NULL)
           {
@@ -194,13 +194,13 @@ int main(int argc, char *argv[])
 
           if(execvp(token[0], token) == -1)
           {
-            perror("execvp"); // This provides an error specific to execvp's failure
+            perror("execvp"); 
             exit(EXIT_FAILURE);
           }
           }
           else if (pid > 0)
           {
-            // Parent process: wait for the child to complete
+            // wait for the child to complete
             wait(NULL);
           }
           else
