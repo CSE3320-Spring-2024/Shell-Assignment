@@ -46,16 +46,23 @@ int main(int argc, char *argv[])
   char *command_string = (char*) malloc(MAX_COMMAND_SIZE);
   char error_message[30] = "An error has occurred\n";
 
-  if(argc > 1)
+  if(argc > 2)
   {
-        //open the file and read arg
-        input_stream = fopen(argv[1], "r");
-        if(input_stream == NULL)
-        {
-          fprintf(stderr, "%s: File not found\n", argv[1]);
-          free(command_string);
-          exit(0);
-        }
+    write(STDERR_FILENO, error_message, strlen(error_message));
+    free(command_string);
+    exit(1);
+    
+  }
+
+  if (argc == 2)
+  {
+    input_stream = fopen(argv[1], "r");
+    if (input_stream == NULL)
+    {
+      write(STDERR_FILENO, error_message, strlen(error_message));
+      free(command_string);
+      exit(1);
+    }
   }
 
   while(1)
@@ -148,15 +155,10 @@ int main(int argc, char *argv[])
         else
         {
           // cd no arg change to the HOME directory.
-          const char* homeDir = getenv("HOME");
-          if(homeDir != NULL)
-          {
-            if(chdir(homeDir) != 0)
-            {
+          
                 write(STDERR_FILENO, error_message, strlen(error_message));
                 break;
-            }
-          }
+      
         }
       }
       else
@@ -177,31 +179,56 @@ int main(int argc, char *argv[])
 
           if(redirectIndex != -1)
           {
-            if (token[redirectIndex + 1] != NULL)
-            {
-              int fd = open(token[redirectIndex + 1], O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-              if(fd < 0)
+              if(redirectIndex == 0 || token[redirectIndex + 1] == NULL || token[redirectIndex + 2] != NULL)
               {
+                // Redirection symbol is used but no file specified
                 write(STDERR_FILENO, error_message, strlen(error_message));
-                exit(1);
+                exit(EXIT_FAILURE); // Prevents the child process from continuing
               }
-              dup2(fd, STDOUT_FILENO);
-              dup2(fd, STDERR_FILENO);
-              close(fd);
-              token[redirectIndex] = NULL;  // Terminate command before the redirection symbol
-            }
-            }
+              else
+              {
+                  int fd = open(token[redirectIndex + 1], O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+                  if(fd < 0)
+                  {
+                  write(STDERR_FILENO, error_message, strlen(error_message));
+                  exit(1);
+                  }
+                  dup2(fd, STDOUT_FILENO);
+                  dup2(fd, STDERR_FILENO);
+                  close(fd);
+                  token[redirectIndex] = NULL;  // Terminate command before the redirection symbol
+              }
+            
+          }
 
-          if(execvp(token[0], token) == -1)
+          if (execvp(token[0], token) == -1)
           {
-            perror("execvp"); 
+              if (getenv("PATH") != NULL)
+              {
+                // PATH is set but the command wasn't found in it
+                // Print a custom error message indicating a possible reason
+                if (errno == ENOENT)
+                {
+                    // Command not found
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                }
+                else
+                {
+                  perror("execvp error");
+                }
+              }
+              else
+              {
+                // If PATH is not set, this is a more specific error
+                write(STDERR_FILENO, error_message, strlen(error_message));
+              }
             exit(EXIT_FAILURE);
           }
-          }
+          } 
           else if (pid > 0)
           {
-            // wait for the child to complete
-            wait(NULL);
+            // Parent process, wait for the child to complete
+             wait(NULL);
           }
           else
           {
@@ -215,11 +242,11 @@ int main(int argc, char *argv[])
       {
         free(token[i]);
       }
-      if(input_stream != stdin)
-      {
-        fclose(input_stream); // Close the file if it was opened
-      }
   }
   free(command_string);
+  if (input_stream != stdin)
+  {
+    fclose(input_stream);
+  }
   return 0;
 }
