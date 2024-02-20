@@ -37,8 +37,8 @@ void toPrintThePids(int trackNum)
 void toPrintTheError()
 {
     const char *error_message = "An error has occurred\n";
-    // write(STDERR_FILENO, error_message, strlen(error_message));
-    exit(EXIT_FAILURE);
+    write(STDERR_FILENO, error_message, strlen(error_message));
+    // exit(EXIT_FAILURE);
 }
 
 void toHandleTheBuiltIns(char *token[])
@@ -111,6 +111,7 @@ void toHandleTheBuiltIns(char *token[])
         }
     }
 }
+
 
 int main(int argc, char *argv[])
 {
