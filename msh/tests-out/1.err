@@ -1,0 +1,2 @@
+execv: No such file or directory
+../tester/run-tests.sh: line 27: 84071 Abort trap: 6           ./msh tests/1.in
