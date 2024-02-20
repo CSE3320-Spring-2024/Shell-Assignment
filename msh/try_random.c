@@ -156,6 +156,9 @@ int main(int argc, char *argv[])
             }
           }
 
+
+
+
           else if (token[0] && strcmp("ls", token[0]) == 0)      // LS function ------ Completed (so far)  Does need other PATH methods
           {
               token[token_count++] = NULL;
@@ -175,21 +178,81 @@ int main(int argc, char *argv[])
                       }
                       dup2( fd, 1 );
 
-                      if (execv("/bin/ls", token_2) == -1)
-                      { 
-                          write(STDERR_FILENO, error_message, strlen(error_message));
-                          exit(0);
-                      }
+                          if (access("/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("/usr/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/usr/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("/usr/local/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/usr/local/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("./ls", X_OK) == 0)
+                          {
+                              if (execv("./ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }                            
+                          }
                       
                       close( fd );  
                   }
                   else
                   {
-                      if (execv("/bin/ls", token_2) == -1)
-                      {
-                          write(STDERR_FILENO, error_message, strlen(error_message));
-                          exit(0);
-                      }
+                       if (access("/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("/usr/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/usr/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("/usr/local/bin/ls", X_OK) == 0)
+                          {
+                              if (execv("/usr/local/bin/ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }
+                          }
+
+                          else if (access("./ls", X_OK) == 0)
+                          {
+                              if (execv("./ls", token_2) == -1)
+                              {
+                                  write(STDERR_FILENO, error_message, strlen(error_message));
+                                  exit(0);
+                              }                            
+                          }
                   }
               }
 
@@ -206,6 +269,12 @@ int main(int argc, char *argv[])
           }
         }
   
+
+
+
+
+
+
    /*                               /// Print out string tokens
     // Code to print out each individual token
     int token_index  = 0;
