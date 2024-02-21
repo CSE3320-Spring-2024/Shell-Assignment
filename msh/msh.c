@@ -282,8 +282,8 @@ int main(int argc, char *argv[])
             //char * strncpy ( char * destination, const char * source, size_t num );
             //Add on after
             strncpy(path, path_token);
-            strcat(path, "/");
-            strcat(path, token[start]);
+            // strcat(path, "/");
+            
            
           }
         
