@@ -41,36 +41,44 @@ ID : 100206072
 #define SIZE_OF_COMMAND_MAX 255
 #define NUM_OF_ARGUMENTS_MAX 10
 
+//creating a boolean variable to check the input required 
 bool checkTheInput = true;
 
+//creating a function to print the error as defined in the requirements 
 void toPrintTheError()
 {
     char error_message[30] = "An error has occurred\n";
     write(STDERR_FILENO, error_message, strlen(error_message));
 }
 
-void toHandleTheBuiltIns(char *token[])
+//creating a function to manage the built-in commands given
+void toHandleTheBuiltIns(char *tokenWeHave[])
 {
-    if (strcmp("exit", token[0]) == 0)
+    //checking if the token is "exit"
+    if (strcmp("exit", tokenWeHave[0]) == 0)
     {
-        if (token[1] != NULL)
+        //checking if the second token is not NULL
+        if (tokenWeHave[1] != NULL)
         {
+            //printing the required error to show
             toPrintTheError();
             return;
         }
+        //exiting the program gracefully
         exit(0);
     }
-    else if (strcmp("cd", token[0]) == 0)
+    //checking if the token is "cd"
+    else if (strcmp("cd", tokenWeHave[0]) == 0)
     {
-        if (token[2] != NULL)
+        if (tokenWeHave[2] != NULL)
         {
             toPrintTheError();
         }
         else
         {
-            if (token[1] != NULL)
+            if (tokenWeHave[1] != NULL)
             {
-                if (chdir(token[1]) == -1)
+                if (chdir(tokenWeHave[1]) == -1)
                 {
                     toPrintTheError();
                 }
@@ -83,29 +91,31 @@ void toHandleTheBuiltIns(char *token[])
     }
     else
     {
+        //creating a child process using fork() call
         pid_t pid = fork();
         if (pid == -1)
         {
+            //handling the print error
             toPrintTheError();
             exit(1);
         }
         else if (pid == 0)
         {
-            for (int i = 0; token[i] != NULL; ++i)
+            for (int i = 0; tokenWeHave[i] != NULL; ++i)
             {
-                if (strcmp(token[i], ">") == 0)
+                if (strcmp(tokenWeHave[i], ">") == 0)
                 {
-                     if (i == 0 || token[i + 1] == NULL)
+                     if (i == 0 || tokenWeHave[i + 1] == NULL)
                     {
                         toPrintTheError();
                         exit(1);
                     }
-                    if (token[i + 2] != NULL)
+                    if (tokenWeHave[i + 2] != NULL)
                     {
                         toPrintTheError();
                         exit(1);
                     }
-                    int fd = open(token[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                    int fd = open(tokenWeHave[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
                     if (fd == -1)
                     {
                         toPrintTheError();
@@ -118,87 +128,102 @@ void toHandleTheBuiltIns(char *token[])
                         exit(1);
                     }
                     close(fd);
-                    for (int j = i; token[j] != NULL; ++j)
+                    for (int j = i; tokenWeHave[j] != NULL; ++j)
                     {
-                        token[j] = token[j + 2];
+                        tokenWeHave[j] = tokenWeHave[j + 2];
                     }
                     break;
                 }
             }
-            execvp(token[0], token);
+            execvp(tokenWeHave[0], tokenWeHave);
             toPrintTheError();
             exit(1);
         }
         else
         {
-            int status;
-            waitpid(pid, &status, 0);
+            int statusOfProcess;
+            waitpid(pid, &statusOfProcess, 0);
         }
     }
 }
 
-
+//creating the main function passing cli arguments 
 int main(int argc, char *argv[])
 {
+    //allocating memory dynamically
     char *allocate_cmdStr = (char *)malloc(SIZE_OF_COMMAND_MAX);
-    FILE *batchFile = NULL;
+    //declaring file pointer input mode 
+    FILE *batchIndicateFile = NULL;
 
     if (argc == 2)
     {
-        batchFile = fopen(argv[1], "r");
-        if (!batchFile)
+        batchIndicateFile = fopen(argv[1], "r");
+        //batchIndicateFile is NULL (file opening failed)
+        if (!batchIndicateFile)
         {
             toPrintTheError();
             exit(1);
         }
         checkTheInput = false;
     }
+    //number of command-line arguments is not equal to 1
     else if (argc != 1)
     {
         toPrintTheError();
         exit(1);
     }
-
+//infinite loop for the main shell 
     while (1)
     {
         if (argc != 2)
         {
             printf("msh> ");
+            //waits until a command is entered
             while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, stdin));
         }
         else
         {
-            while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, batchFile))
+            //reading commands until end 
+            while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, batchIndicateFile))
             {
-                if (feof(batchFile))
+                //if it reached the end of file 
+                if (feof(batchIndicateFile))
                     exit(0);
             }
         }
-
+        //creating an array to store tokens
         char *tokenWeHave[NUM_OF_ARGUMENTS_MAX];
         int numOfTokens = 0;
-        char *pointerForArgument;
-        char *stringWorks = strdup(allocate_cmdStr);
-        char *rootWorks = stringWorks;
+        //setting pointers for tokenization
+        char *pointerForArgument, *stringWorks = strdup(allocate_cmdStr), *rootWorks = stringWorks;
         checkTheInput = true;
 
+        //tokenizing the input string using WHITESPACE as delimeter, limited num of tokens 
         while (((pointerForArgument = strsep(&stringWorks, WHITESPACE)) != NULL) && (numOfTokens < NUM_OF_ARGUMENTS_MAX))
         {
+            //copying the token into tokenWeHave array, limited length
             tokenWeHave[numOfTokens] = strndup(pointerForArgument, SIZE_OF_COMMAND_MAX);
+            //if the empty string is 0
             if (strlen(tokenWeHave[numOfTokens]) == 0)
             {
+                //setting the tokens to NULL
                 tokenWeHave[numOfTokens] = NULL;
             }
+            //incrementing the num of tokens
             else
             {
                 numOfTokens++;
             }
         }
+        //if the command token is NULL
         if (tokenWeHave[0] == NULL)
         {
+            //continue to next iteration 
             continue;
         }
+        //handling the built-in commands on given tokens
         toHandleTheBuiltIns(tokenWeHave);
+        //freeing the memory allocated for rootWorks pointer
         free(rootWorks);
     }
     return 0;
