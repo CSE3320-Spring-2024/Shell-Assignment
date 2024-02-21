@@ -191,13 +191,7 @@ void toHandleTheBuiltIns(char *token[])
     {
         if (token[1] == NULL)
         {
-            const char *home_dir = getenv("HOME");
-            if (home_dir != NULL)
-            {
-                if (chdir(home_dir) == -1)
-                {
-                    toPrintTheError();
-                }
+            toPrintTheError();
             }
             else
             {
