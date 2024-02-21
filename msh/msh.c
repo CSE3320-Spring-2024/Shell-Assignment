@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
 #include <string.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #define WHITESPACE " \t\n"
 #define SIZE_OF_COMMAND_MAX 255
@@ -184,29 +185,8 @@ void toPrintTheError()
 
 void toHandleTheBuiltIns(char *token[])
 {
-    int redOut = 0;
-    int redInput = 0;
-
-    // Check for redirection operators
-    for (int i = 0; token[i] != NULL; ++i)
-    {
-        if (strcmp(token[i], ">") == 0)
-        {
-            // Redirect output to a file
-            redOut = i;
-            break;
-        }
-        else if (strcmp(token[i], "<") == 0)
-        {
-            // Redirect input from a file
-            redInput = i;
-            break;
-        }
-    }
-
     if (strcmp("exit", token[0]) == 0)
     {
-        // Check if there is an argument after "exit"
         if (token[1] != NULL)
         {
             toPrintTheError();
@@ -245,6 +225,35 @@ void toHandleTheBuiltIns(char *token[])
         }
         else if (pid == 0)
         {
+            for (int i = 0; token[i] != NULL; ++i)
+            {
+                if (strcmp(token[i], ">") == 0)
+                {
+                    if (token[i + 1] == NULL)
+                    {
+                        toPrintTheError();
+                        exit(EXIT_FAILURE);
+                    }
+                    int fd = open(token[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                    if (fd == -1)
+                    {
+                        toPrintTheError();
+                        exit(EXIT_FAILURE);
+                    }
+                    if (dup2(fd, STDOUT_FILENO) == -1)
+                    {
+                        toPrintTheError();
+                        close(fd);
+                        exit(EXIT_FAILURE);
+                    }
+                    close(fd);
+                    for (int j = i; token[j] != NULL; ++j)
+                    {
+                        token[j] = token[j + 2];
+                    }
+                    break;
+                }
+            }
             execvp(token[0], token);
             toPrintTheError();
             exit(EXIT_FAILURE);
