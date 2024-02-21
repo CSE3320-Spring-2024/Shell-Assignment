@@ -1,4 +1,5 @@
-/*#define _GNU_SOURCE
+/*
+define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -18,7 +19,7 @@ bool checkTheInput = true;
 void toPrintTheError()
 {
     char error_message[] = "An error has occurred\n";
-    write(STDERR_FILENO, error_message, strlen(error_message));
+    fprintf(stderr, "%s", error_message);
 }
 
 void toHandleTheBuiltIns(char *token[])
@@ -65,11 +66,11 @@ void toHandleTheBuiltIns(char *token[])
             exit(EXIT_FAILURE);
         }
         else if (pid == 0)
-        {
-            execvp(token[0], token);
-            toPrintTheError();
-            exit(EXIT_FAILURE);
-        }
+{
+    execvp(token[0], token);
+    perror(token[0]); // Print specific error message
+    exit(EXIT_FAILURE);
+}
         else
         {
             int status;
@@ -155,7 +156,8 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-}*/
+}
+*/
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -169,20 +171,14 @@ int main(int argc, char *argv[])
 #define NUM_OF_ARGUMENTS_MAX 10
 #define PID_OF_COMMAND_MAX 15
 
-
-
 int toTrackTheCmds = 0;
 int toTrackThePids = 0;
 bool checkTheInput = true;
-
-
-
 
 void toPrintTheError()
 {
     const char *error_message = "An error has occurred\n";
     write(STDERR_FILENO, error_message, strlen(error_message));
-    // exit(EXIT_FAILURE);
 }
 
 void toHandleTheBuiltIns(char *token[])
@@ -200,7 +196,7 @@ void toHandleTheBuiltIns(char *token[])
             {
                 if (chdir(home_dir) == -1)
                 {
-                    perror("cd");
+                    toPrintTheError();
                 }
             }
             else
@@ -216,7 +212,7 @@ void toHandleTheBuiltIns(char *token[])
         {
             if (chdir(token[1]) == -1)
             {
-                perror("cd");
+                toPrintTheError();
             }
         }
     }
@@ -225,7 +221,7 @@ void toHandleTheBuiltIns(char *token[])
         pid_t pid = fork();
         if (pid == -1)
         {
-            perror("An error has occurred\n");
+            toPrintTheError();
             exit(EXIT_FAILURE);
         }
         else if (pid == 0)
@@ -236,13 +232,11 @@ void toHandleTheBuiltIns(char *token[])
         }
         else
         {
-
             int status;
             waitpid(pid, &status, 0);
         }
     }
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -254,13 +248,14 @@ int main(int argc, char *argv[])
         batchFile = fopen(argv[1], "r");
         if (!batchFile)
         {
-            perror("Error opening batch file");
+            toPrintTheError();
             exit(EXIT_FAILURE);
         }
         checkTheInput = false; // No prompt for batch mode
     }
     else if (argc != 1)
     {
+        toPrintTheError();
         fprintf(stderr, "Usage: %s [batch_file]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -270,12 +265,15 @@ int main(int argc, char *argv[])
         if (argc != 2)
         {
             printf("msh> ");
-            while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, stdin));
+            while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, stdin))
+                ;
         }
-        else 
+        else
         {
-            while(!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, batchFile)) {
-                if(feof(batchFile)) exit(0);
+            while (!fgets(allocate_cmdStr, SIZE_OF_COMMAND_MAX, batchFile))
+            {
+                if (feof(batchFile))
+                    exit(0);
             }
         }
 
