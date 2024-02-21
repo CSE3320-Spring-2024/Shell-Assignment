@@ -229,10 +229,15 @@ void toHandleTheBuiltIns(char *token[])
             {
                 if (strcmp(token[i], ">") == 0)
                 {
-                    if (token[i + 1] == NULL)
+                     if (i == 0 || token[i + 1] == NULL)
                     {
                         toPrintTheError();
-                        exit(EXIT_FAILURE);
+                        exit(1);
+                    }
+                    if (token[i + 2] != NULL)
+                    {
+                        toPrintTheError();
+                        exit(1);
                     }
                     int fd = open(token[i + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
                     if (fd == -1)
