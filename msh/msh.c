@@ -33,15 +33,15 @@ int main(int argc, char *argv[])
         bf = fopen(argv[1], "r");
         if (bf == NULL)
         {
-            //char error_message[30] = "An error has occurred\n";
-            exit(0);
+            write(STDERR_FILENO, error_message, strlen(error_message));
+            exit(1);
         }
         batch_found = 1;
     }
     else if (argc > 2)
     {
-       //char error_message[30] = "An error has occurred\n";
-        exit(0);
+       write(STDERR_FILENO, error_message, strlen(error_message));
+        exit(1);
     }
 
     while( 1 )
@@ -159,13 +159,13 @@ int main(int argc, char *argv[])
                         if(location_num + 2 != token_count)
                         {
                             write(STDERR_FILENO, error_message, strlen(error_message));
-                            exit( 0 ); 
+                            exit(-1); 
                         }
                         int fd = open( token[location_num+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
                         if( fd < 0 )
                         {
                             write(STDERR_FILENO, error_message, strlen(error_message));
-                            exit( 0 );                    
+                            exit( -1 );                    
                         }
                         dup2( fd, 1 );
                         close( fd );
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
                     else if ( redirect_found > 0)
                     {
                         write(STDERR_FILENO, error_message, strlen(error_message));
-                        exit(0);
+                        exit(-1);
                     }
                     else
                     {
@@ -408,15 +408,16 @@ int main(int argc, char *argv[])
                         if(location_num + 1 != token_count)
                         {
                             write(STDERR_FILENO, error_message, strlen(error_message));
-                            exit( 0 ); 
+                            exit(-1); 
                         }
                         int fd = open( token[location_num + 1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
                         if( fd < 0 )
                         {
                             write(STDERR_FILENO, error_message, strlen(error_message));
-                            exit( 0 );                    
+                            exit(-1);                    
                         }
                         dup2( fd, 1 );
+                        close( fd ); 
 
                         if (access("/bin/rm", X_OK) == 0)
                         {
@@ -453,8 +454,12 @@ int main(int argc, char *argv[])
                                 exit(0);
                             }                            
                         }
+                        else
+                        {
+                            exit(-1);
+                        }
                       
-                        close( fd );  
+                         
                     }
                     else
                     {
