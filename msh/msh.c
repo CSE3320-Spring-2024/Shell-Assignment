@@ -47,9 +47,7 @@
 
 ///////NOT WORKING?????
 ///// > Insert code work on later fill out oof 
-///////RESUBMIT TO MAKE SURE - Wasn't working??? 
-//Try again Github s
-
+///////Fix again
 int main(int argc, char *argv[])
 {
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
@@ -280,7 +278,9 @@ int main(int argc, char *argv[])
        //////////////////////////////////////////////
 
           while ((path_token = strcmp(&env, ":")) != NULL) { 
-
+            //char *strncat(char *dest, const char *src, size_t n)
+            //char * strncpy ( char * destination, const char * source, size_t num );
+            //Add on after
             strncpy(path, path_token);
             strcat(path, "/");
             strcat(path, token[start]);
