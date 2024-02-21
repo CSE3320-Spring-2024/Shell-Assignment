@@ -165,6 +165,7 @@ int main(int argc, char *argv[])
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
+#include <fcntl.h>
 
 #define WHITESPACE " \t\n"
 #define SIZE_OF_COMMAND_MAX 255
@@ -183,23 +184,52 @@ void toPrintTheError()
 
 void toHandleTheBuiltIns(char *token[])
 {
+    int redOut = 0;
+    int redInput = 0;
+
+    // Check for redirection operators
+    for (int i = 0; token[i] != NULL; ++i)
+    {
+        if (strcmp(token[i], ">") == 0)
+        {
+            // Redirect output to a file
+            redOut = i;
+            break;
+        }
+        else if (strcmp(token[i], "<") == 0)
+        {
+            // Redirect input from a file
+            redInput = i;
+            break;
+        }
+    }
+
     if (strcmp("exit", token[0]) == 0)
     {
+        // Check if there is an argument after "exit"
+        if (token[1] != NULL)
+        {
+            toPrintTheError();
+            return;
+        }
         exit(0);
     }
     else if (strcmp("cd", token[0]) == 0)
     {
-        if (token[1] == NULL)
-        {
-            toPrintTheError();
-        }
-        else if (token[2] != NULL)
+        if (token[2] != NULL)
         {
             toPrintTheError();
         }
         else
         {
-            if (chdir(token[1]) == -1)
+            if (token[1] != NULL)
+            {
+                if (chdir(token[1]) == -1)
+                {
+                    toPrintTheError();
+                }
+            }
+            else
             {
                 toPrintTheError();
             }
@@ -226,6 +256,7 @@ void toHandleTheBuiltIns(char *token[])
         }
     }
 }
+
 
 int main(int argc, char *argv[])
 {

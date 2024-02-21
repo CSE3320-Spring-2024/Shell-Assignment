@@ -1,7 +1,1 @@
 ls: cannot access '/no/such/file': No such file or directory
-ls: cannot access ''$'\240\027\005\230\002': No such file or directory
-ls: cannot access 'x86_64': No such file or directory
-ls: cannot access ''$'\363\017\036\372''UH'$'\215\005''t'$'\262': No such file or directory
-ls: cannot access 'H'$'\203\303\001''H9'$'\335''u'$'\352''H'$'\203\304\b''[]A\A]A^A_'$'\303''ff.'$'\017\037\204': No such file or directory
-ls: cannot access '': No such file or directory
-ls: cannot access ''$'\363\017\036\372''AWL'$'\215''='$'\343''$': No such file or directory
