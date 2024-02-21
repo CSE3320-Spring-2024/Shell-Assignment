@@ -290,7 +290,6 @@ int main(int argc, char *argv[])
     else if (argc != 1)
     {
         toPrintTheError();
-        fprintf(stderr, "Usage: %s [batch_file]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -326,7 +325,10 @@ int main(int argc, char *argv[])
             {
                 tokenWeHave[numOfTokens] = NULL;
             }
-            numOfTokens++;
+            else
+            {
+                numOfTokens++;
+            }
         }
         if (tokenWeHave[0] == NULL)
         {
