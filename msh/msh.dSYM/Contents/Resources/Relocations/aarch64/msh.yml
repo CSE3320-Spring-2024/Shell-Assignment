@@ -1,0 +1,11 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     msh
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _parse_input, symObjAddr: 0x0, symBinAddr: 0x100003914, symSize: 0x14 }
+  - { offsetInCU: 0x42, offset: 0x42, size: 0x8, addend: 0x0, symName: _parse_input, symObjAddr: 0x0, symBinAddr: 0x100003914, symSize: 0x14 }
+  - { offsetInCU: 0x74, offset: 0x74, size: 0x8, addend: 0x0, symName: _execute_command, symObjAddr: 0x14, symBinAddr: 0x100003928, symSize: 0xA0 }
+  - { offsetInCU: 0xD0, offset: 0xD0, size: 0x8, addend: 0x0, symName: _handle_builtin_commands, symObjAddr: 0xB4, symBinAddr: 0x1000039C8, symSize: 0x1AC }
+  - { offsetInCU: 0x11E, offset: 0x11E, size: 0x8, addend: 0x0, symName: _handle_redirection, symObjAddr: 0x260, symBinAddr: 0x100003B74, symSize: 0x10 }
+  - { offsetInCU: 0x142, offset: 0x142, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x270, symBinAddr: 0x100003B84, symSize: 0x2C0 }
+...
