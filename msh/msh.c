@@ -192,11 +192,6 @@ void toHandleTheBuiltIns(char *token[])
         if (token[1] == NULL)
         {
             toPrintTheError();
-            }
-            else
-            {
-                toPrintTheError();
-            }
         }
         else if (token[2] != NULL)
         {
