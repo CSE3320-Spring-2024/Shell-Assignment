@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         }
         else if(ferror(input_stream))
         {
-            // Error reading from input_stream
+            //Error reading from input_stream
             write(STDERR_FILENO, error_message, strlen(error_message));
             break;
         }
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
           {
             free(token[i]);
           }
-            break;  // Break out of the while loop
+            break;//Break out of the while loop
           }
             token_count++;
           }
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         continue;
       }
 
-      token[token_count] = NULL;  //NULL-terminate token array
+      token[token_count] = NULL;//NULL-terminate token array
 
       if(strcmp(token[0], "exit") == 0)
       {
@@ -130,30 +130,30 @@ int main(int argc, char *argv[])
         }
         else
         {
-          break;  // Break out of the while loop
+          break;//Break out of the while loop
         }
       }
       else if(strcmp(token[0], "cd") == 0)
       {
         if(token_count > 2)
         {
-          // If more than one arg print erroe
+          //If more than one arg print error
           write(STDERR_FILENO, error_message, strlen(error_message));
           break;
         }
         else if(token_count == 2)
         {
-          //change directory
+          //Change directory
           if(chdir(token[1]) != 0)
           {
-            //changing directory fails error
+            //Changing directory fails error
             write(STDERR_FILENO, error_message, strlen(error_message));
             break;
           }
         }
         else
         {
-          //cd no arg error
+          //Change directory no arg error
           write(STDERR_FILENO, error_message, strlen(error_message));
           break;
       
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         pid_t pid = fork();
         if(pid == 0)
         {
-          // Child process
+          //Child process
           int redirectIndex = -1;
           for(int i = 0; i < token_count; i++)
           {
@@ -179,9 +179,9 @@ int main(int argc, char *argv[])
           {
               if(redirectIndex == 0 || token[redirectIndex + 1] == NULL || token[redirectIndex + 2] != NULL)
               {
-                // Redirection symbol is used but no file specified
+                //Redirection symbol is used but no file specified
                 write(STDERR_FILENO, error_message, strlen(error_message));
-                exit(EXIT_FAILURE); // Prevents the child process from continuing
+                exit(EXIT_FAILURE); //Prevents the child process from continuing
               }
               else
               {
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
                 dup2(fd, STDOUT_FILENO);
                 dup2(fd, STDERR_FILENO);
                 close(fd);
-                token[redirectIndex] = NULL; // Terminate command before the redirection symbol
+                token[redirectIndex] = NULL; //Terminate command before the redirection symbol
               }
             
           }
@@ -203,10 +203,10 @@ int main(int argc, char *argv[])
           {
               if(getenv("PATH") != NULL)
               {
-                // PATH is set but the command wasn't found
+                //PATH is set but the command wasn't found
                 if(errno == ENOENT)
                 {
-                    // Command not found
+                    //Command not found
                     write(STDERR_FILENO, error_message, strlen(error_message));
                 }
                 else
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
               }
               else
               {
-                // If PATH is not set, error
+                //If PATH is not set, error
                 write(STDERR_FILENO, error_message, strlen(error_message));
               }
             exit(EXIT_FAILURE);
@@ -224,12 +224,12 @@ int main(int argc, char *argv[])
           } 
           else if(pid > 0)
           {
-            // Parent process, wait for the child to complete
+            //Parent process, wait for the child to complete
              wait(NULL);
           }
           else
           {
-            // Fork failed
+            //Fork failed
             perror("fork error");
             break;
           }
