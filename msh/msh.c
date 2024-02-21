@@ -87,7 +87,7 @@ void toHandleTheBuiltIns(char *token[])
         if (pid == -1)
         {
             toPrintTheError();
-            exit(EXIT_FAILURE);
+            exit(1);
         }
         else if (pid == 0)
         {
@@ -109,13 +109,13 @@ void toHandleTheBuiltIns(char *token[])
                     if (fd == -1)
                     {
                         toPrintTheError();
-                        exit(EXIT_FAILURE);
+                        exit(1);
                     }
                     if (dup2(fd, STDOUT_FILENO) == -1)
                     {
                         toPrintTheError();
                         close(fd);
-                        exit(EXIT_FAILURE);
+                        exit(1);
                     }
                     close(fd);
                     for (int j = i; token[j] != NULL; ++j)
@@ -127,7 +127,7 @@ void toHandleTheBuiltIns(char *token[])
             }
             execvp(token[0], token);
             toPrintTheError();
-            exit(EXIT_FAILURE);
+            exit(1);
         }
         else
         {
@@ -149,14 +149,14 @@ int main(int argc, char *argv[])
         if (!batchFile)
         {
             toPrintTheError();
-            exit(EXIT_FAILURE);
+            exit(1);
         }
         checkTheInput = false;
     }
     else if (argc != 1)
     {
         toPrintTheError();
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     while (1)
